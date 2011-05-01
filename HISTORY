@@ -1,0 +1,21 @@
+Changes in 1.5
+- Updated the options dialog
+
+Changes in 1.4
+- Recognize active/inactive license
+- Updated the options page
+- Updated the options screenshot
+
+Changes in 1.3
+- Different approach to user status indication.
+
+Changes in 1.2 (hotfix)
+- All Chrome versions are supported now.
+
+Changes in 1.1
+- Improved user status indication.
+- Less server round-trips.
+- Local URLs are not sent to Pdfcrowd.
+
+Changes in 1.0
+- Initial release
