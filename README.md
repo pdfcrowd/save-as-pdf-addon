@@ -2,20 +2,20 @@
 
 
 Save as PDF is a Google Chrome extension that lets you easily save web pages to
-pdf. It uses <http://pdfcrowd.com> online html to pdf service.
+pdf. It uses Pdfcrowd online [html to pdf](https://pdfcrowd.com) service.
 
 
 Install the extension:
  <https://chrome.google.com/extensions/detail/kpdjmbiefanbdgnkcikhllpmjnnllbbc>
 
 Pdfcrowd:
- <http://pdfcrowd.com>
+ <https://pdfcrowd.com>
 
 Project homepage at GitHub:
- <https://github.com/pdfcrowd/node-pdfcrowd/>
+ <https://github.com/pdfcrowd/save-as-pdf-chrome/>
 
 Enter an issue:
- <https://github.com/pdfcrowd/node-pdfcrowd/issues/>
+ <https://github.com/pdfcrowd/save-as-pdf-chrome/issues/>
  
  
 # License (MIT License)
