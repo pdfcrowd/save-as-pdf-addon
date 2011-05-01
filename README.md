@@ -1,8 +1,8 @@
-# Save as PDF
+# Save as PDF for Google Chrome
 
 
 Save as PDF is a Google Chrome extension that lets you easily save web pages to
-pdf. It uses Pdfcrowd online [html to pdf](https://pdfcrowd.com) service.
+pdf. It uses the Pdfcrowd [html to pdf](https://pdfcrowd.com) online service.
 
 
 Install the extension:
