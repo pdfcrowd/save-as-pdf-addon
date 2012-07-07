@@ -1,6 +1,7 @@
 {
   "name": "Save as PDF",
   "version": "1.6",
+  "manifest_version": 2,
   "description": "Lets you download web pages as PDF in one click.",
   "permissions": [
     "http://pdfcrowd.com/*",
@@ -15,6 +16,6 @@
             "48": "icons/icon48.png",
             "128": "icons/icon128.png" },
 
- "background_page" : "background.html",
+ "background" : { "page": "background.html" },
  "options_page": "options.html"
 }
