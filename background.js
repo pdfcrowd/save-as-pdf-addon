@@ -204,3 +204,5 @@ function init() {
 chrome.browserAction.onClicked.addListener(function(tab) {
     createPdf(tab);
 });
+
+init();
