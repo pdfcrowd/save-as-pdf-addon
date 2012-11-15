@@ -152,10 +152,17 @@ function createPdf(tab) {
     xhr.onreadystatechange = onDataReady(xhr, {
         onSuccess: function(data) {
             if (data.status === 'ok') {
-                // does not work for pinned tabs, see
-                // http://code.google.com/p/chromium/issues/detail?id=36791
-                chrome.tabs.update(tab.id, {url: data.url});
-            } else if (data.status === 'error') {
+                try {
+                    // create a new tab which is closed automatically
+                    // fixes: http://pdfcrowd.com/forums/read.php?3,1220
+		            chrome.tabs.create({url: data.url, active: false});                    
+                } catch(e) {
+                    // fallback for older versions that do not suppoort the 'active' property
+                    // does not work for pinned tabs, see
+                    // http://code.google.com/p/chromium/issues/detail?id=36791
+                    chrome.tabs.update(tab.id, {url: data.url});
+                }
+	        } else if (data.status === 'error') {
                 showError(data.message);
             } else if (data.status === 'redirect') {
                       // tbd
