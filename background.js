@@ -153,11 +153,18 @@ function createPdf(tab) {
         onSuccess: function(data) {
             if (data.status === 'ok') {
                 try {
-                    // create a new tab which is closed automatically
+                    // create a new tab for the generated PDF
                     // fixes: http://pdfcrowd.com/forums/read.php?3,1220
 		            chrome.tabs.create({url: data.url, active: false}, function(pdf_tab) {
+                        // normally, Chrome closes that tab; however
+                        // under certain circumstances (e.g. when the
+                        // user cancels the Save As dialog) the tab
+                        // may stay open; so we wait a couple of
+                        // seconds and close tab if it still exists
                         setTimeout(function() {
-                            chrome.tabs.remove(pdf_tab.id);
+                            if (pdf_tab.url === data.url) {
+                                chrome.tabs.remove(pdf_tab.id);
+                            }
                         }, 3000);
                     });
                 } catch(e) {
