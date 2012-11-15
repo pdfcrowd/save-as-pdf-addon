@@ -155,7 +155,11 @@ function createPdf(tab) {
                 try {
                     // create a new tab which is closed automatically
                     // fixes: http://pdfcrowd.com/forums/read.php?3,1220
-		            chrome.tabs.create({url: data.url, active: false});                    
+		            chrome.tabs.create({url: data.url, active: false}, function(pdf_tab) {
+                        setTimeout(function() {
+                            chrome.tabs.remove(pdf_tab.id);
+                        }, 3000);
+                    });
                 } catch(e) {
                     // fallback for older versions that do not suppoort the 'active' property
                     // does not work for pinned tabs, see
