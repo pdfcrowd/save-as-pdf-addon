@@ -162,9 +162,10 @@ function createPdf(tab) {
                         // may stay open; so we wait a couple of
                         // seconds and close tab if it still exists
                         setTimeout(function() {
-                            if (pdf_tab.url === data.url) {
-                                chrome.tabs.remove(pdf_tab.id);
-                            }
+                            chrome.tabs.get(pdf_tab.id, function(pdf_tab) {
+                                if (pdf_tab.url === data.url && !pdf_tab.active) {
+                                    chrome.tabs.remove(pdf_tab.id);
+                                }});
                         }, 3000);
                     });
                 } catch(e) {
