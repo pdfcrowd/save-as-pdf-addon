@@ -4,7 +4,7 @@
   "manifest_version": 2,
   "description": "Lets you download web pages as PDF in one click.",
   "permissions": [
-    "http://pdfcrowd.com/*",
+    "https://pdfcrowd.com/*",
     "tabs"
   ],
 

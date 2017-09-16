@@ -188,7 +188,7 @@ function createPdf(tab) {
         }
     });
     
-    var url = 'http://pdfcrowd.com/session/json/convert/uri/';
+    var url = 'https://pdfcrowd.com/session/json/convert/uri/';
           xhr.open('POST', url, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send("src="+escape(tab.url));
