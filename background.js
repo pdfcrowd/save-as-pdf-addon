@@ -163,7 +163,8 @@ function createPdf(tab) {
                         // seconds and close tab if it still exists
                         setTimeout(function() {
                             chrome.tabs.get(pdf_tab.id, function(pdf_tab) {
-                                if (pdf_tab.url === data.url && !pdf_tab.active) {
+                                if (!chrome.runtime.lastError && pdf_tab &&
+                                    pdf_tab.url === data.url && !pdf_tab.active) {
                                     chrome.tabs.remove(pdf_tab.id);
                                 }});
                         }, 3000);
