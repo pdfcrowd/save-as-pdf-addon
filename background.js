@@ -152,29 +152,7 @@ function createPdf(tab) {
     xhr.onreadystatechange = onDataReady(xhr, {
         onSuccess: function(data) {
             if (data.status === 'ok') {
-                try {
-                    // create a new tab for the generated PDF
-                    // fixes: http://pdfcrowd.com/forums/read.php?3,1220
-		            chrome.tabs.create({url: data.url, active: false}, function(pdf_tab) {
-                        // normally, Chrome closes that tab; however
-                        // under certain circumstances (e.g. when the
-                        // user cancels the Save As dialog) the tab
-                        // may stay open; so we wait a couple of
-                        // seconds and close tab if it still exists
-                        setTimeout(function() {
-                            chrome.tabs.get(pdf_tab.id, function(pdf_tab) {
-                                if (!chrome.runtime.lastError && pdf_tab &&
-                                    pdf_tab.url === data.url && !pdf_tab.active) {
-                                    chrome.tabs.remove(pdf_tab.id);
-                                }});
-                        }, 3000);
-                    });
-                } catch(e) {
-                    // fallback for older versions that do not suppoort the 'active' property
-                    // does not work for pinned tabs, see
-                    // http://code.google.com/p/chromium/issues/detail?id=36791
-                    chrome.tabs.update(tab.id, {url: data.url});
-                }
+                chrome.tabs.update(tab.id, {url: data.url});
 	        } else if (data.status === 'error') {
                 showError(data.message);
             } else if (data.status === 'redirect') {
@@ -198,7 +176,7 @@ function createPdf(tab) {
 
 function init() {
 
-    var version = "1.8";
+    var version = "1.9";
     //Show updated page first load
     if(localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
         chrome.tabs.create( {url:"updated.html"} );
