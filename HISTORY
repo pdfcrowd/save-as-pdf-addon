@@ -1,3 +1,7 @@
+Changes in 1.9
+- Compatibility with Firefox
+- PDF is loaded into the current tab
+
 Changes in 1.8
 - The add-on now uses secure connections to communicate
   with the Pdfcrowd servers.
