@@ -1,3 +1,6 @@
+Changes in 1.10
+- Support for the new API backend
+
 Changes in 1.9
 - Compatibility with Firefox
 - PDF is loaded into the current tab

@@ -135,16 +135,20 @@ function onDataReady(xhr, callbacks) {
 }
 
 
-function createPdf(tab) {
+function canRunConversion(tab) {
     var rex = /^((?:chrome|file|chrome-extension|about):.*$)/i;
     var result = rex.exec(tab.url);
     if (result) {
         showError("Conversion of local URLs is not supported (" + result[1] + ").");
-        return;
+        return false;
     }
-    
     // is there an ongoing conversion?
-    if (animation.timerId_ != 0) return;
+    if (animation.timerId_ != 0) return false;
+
+    return true;
+}
+
+function createPdf(tab, apiUrl) {
     
     clearError();
     
@@ -165,18 +169,17 @@ function createPdf(tab) {
             animation.stop(); 
         }
     });
-    
-    var url = 'https://pdfcrowd.com/session/json/convert/uri/';
-          xhr.open('POST', url, true);
+
+    xhr.open('POST', apiUrl, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send("src="+escape(tab.url));
+    xhr.send("src=" + escape(tab.url));
     animation.start();
 };
 
 
 function init() {
 
-    var version = "1.9";
+    var version = "1.10";
     //Show updated page first load
     if(localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
         chrome.tabs.create( {url:"updated.html"} );
@@ -191,9 +194,34 @@ function init() {
     //findOutUserStatus();
 }
 
+var baseUrl = 'https://pdfcrowd.com'
+var apiUrls = {
+    1: baseUrl + '/session/json/convert/uri/',
+    2: baseUrl + '/session/json/convert/uri/v2/'
+}
+
+var apiVersionUrl = baseUrl + '/session/api-version/'
+
 
 chrome.browserAction.onClicked.addListener(function(tab) {
-    createPdf(tab);
+    if (!canRunConversion(tab)) {
+        return;
+    }
+
+    // find out the api version for the current user
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = onDataReady(xhr, {
+        onSuccess: function(data) {
+            var apiUrl = apiUrls[data.api_version];
+            if (apiUrl === undefined) {
+                apiUrl = apiUrls[2];
+            }
+            // create pdf
+            createPdf(tab, apiUrl);
+        },
+    });
+    xhr.open('GET', apiVersionUrl, true);
+    xhr.send(null);
 });
 
 init();
