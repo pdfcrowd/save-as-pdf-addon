@@ -70,8 +70,8 @@ function showStaticIcon() {
 function updateBadgeAndTitle() {
     if (error) {
         chrome.browserAction.setTitle({title: error});
-        chrome.browserAction.setBadgeText({text: '!'});
-        // TBD badge background color
+        chrome.browserAction.setBadgeText({text: 'ERR'});
+        chrome.browserAction.setBadgeBackgroundColor({color:"#f00"});
     } else {
         var title = "Save as PDF - by pdfcrowd.com"
         chrome.browserAction.setTitle({title: title});
