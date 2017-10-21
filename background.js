@@ -137,7 +137,7 @@ function onDataReady(xhr, callbacks) {
 
 
 function canRunConversion(tab) {
-    var rex = /^((?:chrome|file|chrome-extension|about|moz-extension):.*$)/i;
+    var rex = /^((?:chrome|file|chrome-extension|about|moz-extension|wyciwyg):.*$)/i;
     var result = rex.exec(tab.url);
     if (result) {
         showError("Conversion of local URLs is not supported (" + result[1] + ").");
