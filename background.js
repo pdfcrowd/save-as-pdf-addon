@@ -167,7 +167,13 @@ function createPdf(tab, apiUrl) {
         },
         
         onError: function(responseText) {
-            showError("Can't connect to Pdfcrowd")
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var error = data.error || "Conversion failed."
+                showError(error);
+            } catch (e) {
+                showError("Conversion failed.");
+            }
         },
 
         onComplete: function() { 
