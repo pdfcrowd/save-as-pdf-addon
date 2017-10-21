@@ -126,7 +126,8 @@ function onDataReady(xhr, callbacks) {
                     }
                 }
             } else {
-                showError("Can't connect to Pdfcrowd")
+                if (callbacks.onError)
+                    callbacks.onError(xhr.responseText)
             }
             if (callbacks.onComplete)
                 callbacks.onComplete();
@@ -165,6 +166,10 @@ function createPdf(tab, apiUrl) {
             updateLoggedIn(data.user);
         },
         
+        onError: function(responseText) {
+            showError("Can't connect to Pdfcrowd")
+        },
+
         onComplete: function() { 
             animation.stop(); 
         }
@@ -173,7 +178,6 @@ function createPdf(tab, apiUrl) {
     xhr.open('POST', apiUrl, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send("src=" + escape(tab.url));
-    animation.start();
 };
 
 
@@ -208,6 +212,8 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         return;
     }
 
+    animation.start();
+
     // find out the api version for the current user
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = onDataReady(xhr, {
@@ -218,6 +224,10 @@ chrome.browserAction.onClicked.addListener(function(tab) {
             }
             // create pdf
             createPdf(tab, apiUrl);
+        },
+        onError: function(responseText) {
+            showError("Can't connect to Pdfcrowd");
+            animation.stop();
         },
     });
     xhr.open('GET', apiVersionUrl, true);
