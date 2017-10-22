@@ -1,6 +1,6 @@
 {
   "name": "Save as PDF",
-  "version": "1.10",
+  "version": "1.11",
   "manifest_version": 2,
   "description": "Lets you download web pages as PDF in one click.",
   "permissions": [

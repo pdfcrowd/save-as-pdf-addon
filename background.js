@@ -70,8 +70,8 @@ function showStaticIcon() {
 function updateBadgeAndTitle() {
     if (error) {
         chrome.browserAction.setTitle({title: error});
-        chrome.browserAction.setBadgeText({text: '!'});
-        // TBD badge background color
+        chrome.browserAction.setBadgeText({text: 'ERR'});
+        chrome.browserAction.setBadgeBackgroundColor({color:"#f00"});
     } else {
         var title = "Save as PDF - by pdfcrowd.com"
         chrome.browserAction.setTitle({title: title});
@@ -126,7 +126,8 @@ function onDataReady(xhr, callbacks) {
                     }
                 }
             } else {
-                showError("Can't connect to Pdfcrowd")
+                if (callbacks.onError)
+                    callbacks.onError(xhr.responseText)
             }
             if (callbacks.onComplete)
                 callbacks.onComplete();
@@ -136,7 +137,7 @@ function onDataReady(xhr, callbacks) {
 
 
 function canRunConversion(tab) {
-    var rex = /^((?:chrome|file|chrome-extension|about):.*$)/i;
+    var rex = /^((?:chrome|file|chrome-extension|about|moz-extension|wyciwyg):.*$)/i;
     var result = rex.exec(tab.url);
     if (result) {
         showError("Conversion of local URLs is not supported (" + result[1] + ").");
@@ -165,6 +166,16 @@ function createPdf(tab, apiUrl) {
             updateLoggedIn(data.user);
         },
         
+        onError: function(responseText) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var error = data.error || "Conversion failed."
+                showError(error);
+            } catch (e) {
+                showError("Conversion failed.");
+            }
+        },
+
         onComplete: function() { 
             animation.stop(); 
         }
@@ -173,15 +184,14 @@ function createPdf(tab, apiUrl) {
     xhr.open('POST', apiUrl, true);
     xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     xhr.send("src=" + escape(tab.url));
-    animation.start();
 };
 
 
 function init() {
 
-    var version = "1.10";
+    var version = "1.11";
     //Show updated page first load
-    if(localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
+    if(false && localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
         chrome.tabs.create( {url:"updated.html"} );
     }
     localStorage.updatedToVersion = version;
@@ -208,6 +218,8 @@ chrome.browserAction.onClicked.addListener(function(tab) {
         return;
     }
 
+    animation.start();
+
     // find out the api version for the current user
     var xhr = new XMLHttpRequest();
     xhr.onreadystatechange = onDataReady(xhr, {
@@ -218,6 +230,10 @@ chrome.browserAction.onClicked.addListener(function(tab) {
             }
             // create pdf
             createPdf(tab, apiUrl);
+        },
+        onError: function(responseText) {
+            showError("Can't connect to Pdfcrowd");
+            animation.stop();
         },
     });
     xhr.open('GET', apiVersionUrl, true);
