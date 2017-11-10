@@ -1,3 +1,11 @@
+Changes in 1.12
+- Updated the options
+
+Changes in 1.11
+- Better error messages
+- Prevent parallel conversions
+- Detect more local urls
+
 Changes in 1.10
 - Support for the new API backend
 

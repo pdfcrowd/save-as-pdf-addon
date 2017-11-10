@@ -189,7 +189,7 @@ function createPdf(tab, apiUrl) {
 
 function init() {
 
-    var version = "1.11";
+    var version = "1.12";
     //Show updated page first load
     if(false && localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
         chrome.tabs.create( {url:"updated.html"} );
