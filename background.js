@@ -1,81 +1,70 @@
 var canvas;
 var canvasContext;
 var image;
-var animation = new ConvertingAnimation();
+// var animation = new ConvertingAnimation();
+var animation = new ConversionIndicator();
 var loggedIn = false;
 var restricted = false;
 var error = '';
 var pendingStatusRequest = false;
 
-function ConvertingAnimation() {
-    this.timerId_ = 0;
-    this.imageXPos_ = 0;
+
+
+// https://developer.chrome.com/docs/extensions/reference/action/
+// https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/api/action/demo/index.js
+
+
+// TBD - dev.pdfcrowd.com -> pdfcrowd.com (tady a manifest)
+// check that there is an ongoin conversion
+// asi pop-up se spinnerem
+// aby byla po installu defaultne pinned
+
+function json(response) {
+    return response.json();
 }
 
 
-ConvertingAnimation.prototype.paintFrame = function() {
-    canvasContext.save();
+function ConversionIndicator() {
+    this.isRunning_ = false;
+}
 
-    
-    var imgHeight = canvas.height - 6;
-    var imgWidth = canvas.width - this.imageXPos_;
-
-    canvasContext.drawImage(image, 0, 0);
-    canvasContext.drawImage(image, 0, 3, imgWidth, imgHeight, this.imageXPos_, 3, imgWidth, imgHeight);
-    
-    if (this.imageXPos_) {
-        canvasContext.drawImage(
-            image, 0, 3, canvas.width, imgHeight, -canvas.width + this.imageXPos_, 3, canvas.width, imgHeight);
-    }
-      
-    canvasContext.restore();
-    
-    chrome.browserAction.setIcon({imageData: canvasContext.getImageData(0, 0, canvas.width, canvas.height)});
-    this.imageXPos_ += 1;
-    
-    if (this.imageXPos_ >= canvas.width)
-        this.imageXPos_ = 0;
+ConversionIndicator.prototype.start = function() {
+    this.isRunning_ = true;
+    chrome.action.setTitle({title: 'converting'});
+    chrome.action.setBadgeText({text: '...'});
+    chrome.action.setBadgeBackgroundColor({color:"#ff0"});
 }
 
 
-ConvertingAnimation.prototype.start = function() {
-    if (this.timerId_)
-        return;
-    
-    var self = this;
-    this.timerId_ = window.setInterval(function() {
-        self.paintFrame();
-    }, 100);
+ConversionIndicator.prototype.stop = function() {
+    this.isRunning_ = false;
+}
+
+ConversionIndicator.prototype.isRunning = function() {
+    return this.isRunning_;
 }
 
 
-ConvertingAnimation.prototype.stop = function() {
-    if (!this.timerId_)
-        return;
-    window.clearInterval(this.timerId_);
-    this.timerId_ = 0;
-    this.imageXPos_ = 0;
-    showStaticIcon();
-}
 
 
 function showStaticIcon() {
-    if (animation.timerId_ != 0) return;
+    if (animation.isRunning()) return;
     canvasContext.drawImage(image, 0, 0);
     drawLoggedIn();
-    chrome.browserAction.setIcon({imageData: canvasContext.getImageData(0, 0, canvas.width, canvas.height)});
+    chrome.action.setIcon({imageData: canvasContext.getImageData(0, 0, canvas.width, canvas.height)});
 }
 
 
 function updateBadgeAndTitle() {
     if (error) {
-        chrome.browserAction.setTitle({title: error});
-        chrome.browserAction.setBadgeText({text: 'ERR'});
-        chrome.browserAction.setBadgeBackgroundColor({color:"#f00"});
+        chrome.action.setTitle({title: error});
+        chrome.action.setBadgeText({text: 'ERR'});
+        chrome.action.setBadgeBackgroundColor({color:"#f00"});
     } else {
         var title = "Save as PDF - by pdfcrowd.com"
-        chrome.browserAction.setTitle({title: title});
-        chrome.browserAction.setBadgeText({text: ''});
+        chrome.action.setTitle({title: title});
+        chrome.action.setBadgeBackgroundColor({color:[0, 0, 0, 0]});
+        chrome.action.setBadgeText({text: ''});
     }
 }
 
@@ -113,27 +102,27 @@ function updateLoggedIn(user) {
 }
 
 
-function onDataReady(xhr, callbacks) {
-    return function(data) {
-        if (xhr.readyState == 4) {
-            if (xhr.status == 200) {
-                if (callbacks.onSuccess) {
-                    try {
-                        var data = JSON.parse(xhr.responseText);
-                        callbacks.onSuccess(data);
-                    } catch (e) {
-                        showError("Conversion failed.");
-                    }
-                }
-            } else {
-                if (callbacks.onError)
-                    callbacks.onError(xhr.responseText)
-            }
-            if (callbacks.onComplete)
-                callbacks.onComplete();
-        }
-    };
-}
+// function onDataReady(xhr, callbacks) {
+//     return function(data) {
+//         if (xhr.readyState == 4) {
+//             if (xhr.status == 200) {
+//                 if (callbacks.onSuccess) {
+//                     try {
+//                         var data = JSON.parse(xhr.responseText);
+//                         callbacks.onSuccess(data);
+//                     } catch (e) {
+//                         showError("Conversion failed.");
+//                     }
+//                 }
+//             } else {
+//                 if (callbacks.onError)
+//                     callbacks.onError(xhr.responseText)
+//             }
+//             if (callbacks.onComplete)
+//                 callbacks.onComplete();
+//         }
+//     };
+// }
 
 
 function canRunConversion(tab) {
@@ -144,67 +133,84 @@ function canRunConversion(tab) {
         return false;
     }
     // is there an ongoing conversion?
-    if (animation.timerId_ != 0) return false;
+    if (animation.isRunning()) return false;
 
     return true;
 }
 
 function createPdf(tab, apiUrl) {
     
-    clearError();
-    
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = onDataReady(xhr, {
-        onSuccess: function(data) {
+    fetch(apiUrl, {
+        method: 'post',
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "src=" + escape(tab.url),
+        credentials: 'include',
+    })
+        .then(json)
+        .then(function(data) {
             if (data.status === 'ok') {
                 chrome.tabs.update(tab.id, {url: data.url});
 	        } else if (data.status === 'error') {
                 showError(data.message);
             } else if (data.status === 'redirect') {
-                      // tbd
+                // tbd
             }
-            updateLoggedIn(data.user);
-        },
-        
-        onError: function(responseText) {
-            try {
-                var data = JSON.parse(xhr.responseText);
-                var error = data.error || "Conversion failed."
-                showError(error);
-            } catch (e) {
-                showError("Conversion failed.");
+            animation.stop();
+            if (data.user) {
+                updateLoggedIn(data.user);
             }
-        },
-
-        onComplete: function() { 
-            animation.stop(); 
-        }
-    });
-
-    xhr.open('POST', apiUrl, true);
-    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    xhr.send("src=" + escape(tab.url));
+        })
+        .catch(function(err) {
+            showError(err.message)
+            animation.stop();
+        });
+    
+    // var xhr = new XMLHttpRequest();
+    // xhr.onreadystatechange = onDataReady(xhr, {
+    //     onSuccess: function(data) {
+    //         if (data.status === 'ok') {
+    //             chrome.tabs.update(tab.id, {url: data.url});
+	//         } else if (data.status === 'error') {
+    //             showError(data.message);
+    //         } else if (data.status === 'redirect') {
+    //                   // tbd
+    //         }
+    //         updateLoggedIn(data.user);
+    //     },
+    //     
+    //     onError: function(responseText) {
+    //         try {
+    //             var data = JSON.parse(xhr.responseText);
+    //             var error = data.error || "Conversion failed."
+    //             showError(error);
+    //         } catch (e) {
+    //             showError("Conversion failed.");
+    //         }
+    //     },
+    // 
+    //     onComplete: function() { 
+    //         animation.stop(); 
+    //     }
+    // });
+    // 
+    // xhr.open('POST', apiUrl, true);
+    // xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    // xhr.send("src=" + escape(tab.url));
 };
 
 
 function init() {
-
-    var version = "1.12";
-    //Show updated page first load
-    if(false && localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
-        chrome.tabs.create( {url:"updated.html"} );
-    }
-    localStorage.updatedToVersion = version;
-    
-
-    image = document.getElementById("standard_icon")
-    canvas = document.getElementById("canvas");
-    canvasContext = canvas.getContext("2d");
-    updateBadgeAndTitle();
-    //findOutUserStatus();
+    // var version = "1.13";
+    // //Show updated page first load
+    // if(false && localStorage.updatedToVersion && localStorage.updatedToVersion != version) {
+    //     chrome.tabs.create( {url:"updated.html"} );
+    // }
+    // localStorage.updatedToVersion = version;
 }
 
-var baseUrl = 'https://pdfcrowd.com'
+var baseUrl = 'https://dev.pdfcrowd.com'
 var apiUrls = {
     1: baseUrl + '/session/json/convert/uri/',
     2: baseUrl + '/session/json/convert/uri/v2/'
@@ -213,31 +219,47 @@ var apiUrls = {
 var apiVersionUrl = baseUrl + '/session/api-version/'
 
 
-chrome.browserAction.onClicked.addListener(function(tab) {
+
+function status(response) {
+    if (response.status >= 200 && response.status < 300) {
+        return Promise.resolve(response);
+    } else {
+        return Promise.reject(new Error("Try again later."));
+    }
+}
+
+chrome.action.onClicked.addListener(async (tab) => {
     if (!canRunConversion(tab)) {
         return;
     }
 
+    var iconFile = "icons/icon19.png";
+    var response = await fetch(chrome.runtime.getURL(iconFile));
+    var blob = await response.blob()
+    image = await createImageBitmap(blob);
+    canvas = new OffscreenCanvas(image.width, image.height);
+    canvasContext = canvas.getContext("2d");
+    canvasContext.drawImage(image, 0, 0);
+    updateBadgeAndTitle();
+
+    clearError();
     animation.start();
 
     // find out the api version for the current user
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = onDataReady(xhr, {
-        onSuccess: function(data) {
+    fetch(apiVersionUrl)
+        .then(status)
+        .then(json)
+        .then(function(data){
             var apiUrl = apiUrls[data.api_version];
             if (apiUrl === undefined) {
                 apiUrl = apiUrls[2];
             }
-            // create pdf
             createPdf(tab, apiUrl);
-        },
-        onError: function(responseText) {
-            showError("Can't connect to Pdfcrowd");
+        })
+        .catch(function(err){
+            showError(err.message);
             animation.stop();
-        },
-    });
-    xhr.open('GET', apiVersionUrl, true);
-    xhr.send(null);
+        });
 });
 
 init();
