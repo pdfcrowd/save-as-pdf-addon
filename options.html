@@ -1,65 +1,122 @@
-<html>
-<head>
-  <title>Save as PDF Options</title>
-  <link rel="stylesheet" href="css/screen.css" type="text/css" media="screen, projection">
-  <!--[if lt IE 8]><link rel="stylesheet" href="css/ie.css" type="text/css" media="screen, projection"><![endif]-->
-  <link rel="stylesheet" href="css/options.css" type="text/css" media="screen, projection">
-</head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Save as PDF Options</title>
 
-<body style="padding:2em">
+    <link rel="stylesheet" href="spinner.css">
+    <style>
+      .error {
+          display: none;
+          color: red;
+      }
 
-<div class="container">
-<div class="span-24">
+      .lic-info {
+          display: none;
+      }
 
-  <br/>
+      .info-wrapper {
+          /* padding: 1rem 0; */
+          /* min-height: 70px; */
+          /* background-color: #f7f7f7; */
+      }
 
-  <h2><img src="icons/icon48.png"> Options</h2>
+      body {
+          padding: 0 1rem 0.5rem 1rem ;
+      }
 
-  <hr>
+      .lic-active, .lic-not-active, .not-logged-in, .logged-in, .is-time-to-renew {
+          display: none;
+      }
 
-  <p class="prepend-top">
-    The Save as PDF add-on uses 
-    <a href="https://pdfcrowd.com/?ref=opts" target="_blank">Pdfcrowd</a>, an online service
-    that can create PDFs from web pages. The add-on is free to use.  For more
-    information about the add-on please visit
-    the <a href="https://pdfcrowd.com/save-as-pdf-addon/?ref=opts"
-    target="_blank"> add-on homepage</a>.
-  </p>
+      .lic-info td:nth-child(2) {
+          padding-left: .5rem;
+      }
 
-    If you want to customize generated
-    PDFs, you may consider obtaining the <a href="http://pdfcrowd.com/pricing/license/?ref=opts"
-                             target="_blank">Pdfcrowd Browser License</a>:
-    <ol>
-      <li><a href="http://pdfcrowd.com/pricing/license/?ref=opts" target="_blank">Sign up</a> for the Browser License</li>
-      <li>Customize the <a href="https://pdfcrowd.com/save-as-pdf-addon/?ref=opts#convert_by_url+with_options" target="_blank">settings</a> on the Pdfcrowd web site</li>
-      <li>Click the <em>Save Settings</em> button</li>
-    </ol>
+      .in-progress {
+          display: inline-block;
+      }
 
-  <p>
-    Here is a screenshot of the available options:
-  </p>
-
-  <p style="text-align: center;">
-    <img style="padding:15px;border:1px solid #aaa;background-color:#d7d7d7" src="images/options-screenshot.png">
-  </p>
-
-  <br />
-  <br />
+    </style>
+    
+  </head>
+  <body>
 
 
-  <hr/>
+    <h3>License information</h3>
+    <div class="info-wrapper">
+      
+      <div class="lic-info > *">
+
+        <p class="lic-not-active">
+          You are using the free version of the plugin.
+        </p>
+
+        <p class="not-logged-in">
+          If you have the license,
+          please <a href="#" class="link-log-in">log in</a>. You must remain logged in for the plugin to apply the license.
+        </p>
+
+        <div class="logged-in">
+          <table>
+            <tr>
+              <td>Username:</td><td class="username"></td>
+            </tr>
+            <tr>
+              <td>License:</td>
+              <td class="">
+                <span class="lic-active">active</span>
+                <span class="lic-not-active">not active - <a href="" class="link-buy-license">buy</a></span>
+              </td>
+            </tr>
+            <tr class="lic-active">
+              <td>Expires:</td>
+              <td>
+                <span class="expires-in"></span>
+                <span class="is-time-to-renew"> - <a href="" class="link-buy-license">renew</a></span>
+              </td>
+            </tr>
+          </table>
+        </div>
+        
+      </div>
+    
+      <div class="error">
+      </div>
+
+      <a href="" class="lic-refresh" style="display:none">Refresh</a>
+      
+    </div>
+
+    
+    <div class="in-progress" title="Conversion is in progress">
+      <div class="spinner-wrapper">
+        <div class="spinner-overlay"></div>
+        <div class="loader"></div>
+      </div>
+    </div>
+    
+
+    
+    <h3>Settings</h3>
+    <p>
+      <a href="" class="link-conversion-settings">Customize converison settings</a>
+      <span class="lic-not-active">(requires a <a href="" class="link-buy-license">license</a>)</span>
+    </p>
+    <form class="options">
+      <p style="display:flex;align-items:center;">
+        <input type="checkbox"
+               class="option"
+               id="instantConversion"
+               name="instantConversion">
+        <label for="instantConversion">&nbsp;Instant conversion</label>
+      </p>
+    </form>
+
+    <p>
+      <button class="save">Close</button>
+    </p>
 
 
-
-  <p style="font-size:smaller; text-align:center;">
-    &raquo; Are you a developer? Try out
-      our <a href="https://pdfcrowd.com/doc/api/?ref=opts"
-      target="_blank">HTML to PDF API</a> and create PDF in your applications. &laquo;
-  </p>
-
-
-</div>
-</div>
-
-</body>
+    <script type="module" src="options.js"></script>
+  </body>
 </html>

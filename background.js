@@ -1,204 +1,182 @@
-var canvas;
-var canvasContext;
-var image;
-// var animation = new ConvertingAnimation();
-var animation = new ConversionIndicator();
-var loggedIn = false;
-var restricted = false;
-var error = '';
-var pendingStatusRequest = false;
-
-
+"use strict";
 
 // https://developer.chrome.com/docs/extensions/reference/action/
 // https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/api/action/demo/index.js
-
+// https://dev.to/anobjectisa/how-to-build-a-chrome-extension-new-manifest-v3-5edk
 
 // TBD - dev.pdfcrowd.com -> pdfcrowd.com (tady a manifest)
-// check that there is an ongoin conversion
-// asi pop-up se spinnerem
 // aby byla po installu defaultne pinned
+// convCtx - timeout 1min na is runnin, pak set isRunning=False
+// polish options page
+// icon -> pdf
+// context menu
+// option to log in -> nejspis do options
+// bug kdyz se to chvili necha stat tak background.js nedostava event
+// non-instant mode - do not allow to convert page (about, chrome, local)
 
-function json(response) {
-    return response.json();
+import {
+    baseUrl, status, json,
+    storageSet, storageGet
+} from "./common.js";
+
+var convCtx = new ConversionContext();
+var loggedIn = false;
+var restricted = false;
+var resultCacheTimeout = 1000*60 * 5;
+var conversionTimeout = 1000*63;
+
+var apiUrls = {
+    1: baseUrl + '/session/json/convert/uri/',
+    2: baseUrl + '/session/json/convert/uri/v2/'
+}
+
+var apiVersionUrl = baseUrl + '/session/api-version/'
+
+
+
+
+// ---------------------------------------------------------------------------
+
+function ConversionContext() {
+    this._isRunning = false;
+    this.data = {};
+    this.url = undefined;
+}
+
+ConversionContext.prototype.sendMessage = function(payload, url) {
+    payload['url'] = url || this.url
+    chrome.runtime.sendMessage(payload).catch(function() {
+        // popup is closed
+        // console.log('sendMessage failed');
+    });
 }
 
 
-function ConversionIndicator() {
-    this.isRunning_ = false;
+ConversionContext.prototype.saveData = function() {
+    console.assert(!this._isRunning);
+    if (this.url) {
+        this.data['timestamp_saved'] = Date.now();
+        var that = this;
+        storageGet('result_cache', function(records) {
+            var records = records || {};
+            
+            // remove expired cached entries
+            let now = Date.now();
+            for (let key in records) {
+                if ((now-records[key].timestamp_saved) > resultCacheTimeout) {
+                    console.log(`deleting expired ${key} from cache`);
+                    delete records[key]
+                }
+            }
+
+            // store to cache
+            records[that.url] = that.data;
+            storageSet('result_cache', records)
+                .then(function() {
+                    console.log(records);
+                });
+        });
+    }
 }
 
-ConversionIndicator.prototype.start = function() {
-    this.isRunning_ = true;
-    chrome.action.setTitle({title: 'converting'});
-    chrome.action.setBadgeText({text: '...'});
-    chrome.action.setBadgeBackgroundColor({color:"#ff0"});
+ConversionContext.prototype.start = function(url) {
+    this._isRunning = true;
+    updateBadge(this._isRunning);
+    this.data = { 'timestamp_start': Date.now() }
+    this.url = url;
+    this.sendMessage({
+        status: 'running'
+    });
 }
 
 
-ConversionIndicator.prototype.stop = function() {
-    this.isRunning_ = false;
-}
+ConversionContext.prototype.canRun = function(url) {
+    if (!this._isRunning) return true;
 
-ConversionIndicator.prototype.isRunning = function() {
-    return this.isRunning_;
-}
-
-
-
-
-function showStaticIcon() {
-    if (animation.isRunning()) return;
-    canvasContext.drawImage(image, 0, 0);
-    drawLoggedIn();
-    chrome.action.setIcon({imageData: canvasContext.getImageData(0, 0, canvas.width, canvas.height)});
-}
-
-
-function updateBadgeAndTitle() {
-    if (error) {
-        chrome.action.setTitle({title: error});
-        chrome.action.setBadgeText({text: 'ERR'});
-        chrome.action.setBadgeBackgroundColor({color:"#f00"});
+    // a conversion is running
+    if (url == this.url)
+    {
+        let elapsed = Date.now() - this.data['timestamp_start']
+        if (elapsed > conversionTimeout) {
+            this.error("Conversion timeout");
+        }
+        
+        this.sendConversionInfo();
     } else {
-        var title = "Save as PDF - by pdfcrowd.com"
-        chrome.action.setTitle({title: title});
+        // tbd send info, not error
+        let payload = {
+            status: "info",
+            message: "Conversion is currently running in another tab.",
+            can_retry: true,
+        };
+        this.sendMessage(payload, url);
+    }
+    
+    return false;
+}
+
+
+ConversionContext.prototype.updateLicenseInfo = function(data) {
+    this.sendMessage({
+        status: 'license_info',
+        data: data,
+    });
+    this.data['license_info'] = data;
+}
+
+
+ConversionContext.prototype.success = function(data) {
+    this._isRunning = false;
+    updateBadge(this._isRunning);
+    this.sendMessage({
+        status: 'success',
+        data: data
+    });
+    this.data['success'] = data
+    this.saveData();
+}
+
+
+ConversionContext.prototype.error = function(message, canRetry=true) {
+    this._isRunning = false;
+    updateBadge(this._isRunning);
+    let payload = {
+        status: "error",
+        message: message,
+        can_retry: canRetry,
+    };
+    this.sendMessage(payload);
+    this.data['error'] = payload;
+}
+
+
+ConversionContext.prototype.sendConversionInfo = function() {
+    console.assert(this._isRunning);
+    this.sendMessage({
+        status: 'running'
+    });
+    this.sendMessage({
+        status: 'license_info',
+        data: this.data['license_info'],
+    });
+}
+
+
+
+// ---------------------------------------------------------------------------
+
+
+
+
+function updateBadge(isRunning) {
+    if (isRunning) {
+        chrome.action.setBadgeText({text: 'C'});
+        chrome.action.setBadgeBackgroundColor({color:"#ff0"});
+    } else {
         chrome.action.setBadgeBackgroundColor({color:[0, 0, 0, 0]});
         chrome.action.setBadgeText({text: ''});
     }
 }
-
-
-function showError(msg) {
-    error = msg;
-    updateBadgeAndTitle();
-}
-
-
-function clearError() {
-    error = '';
-    updateBadgeAndTitle();
-}
-
-
-function drawLoggedIn() {
-    if (loggedIn && !restricted)
-        return;
-   
-    canvasContext.save();
-    canvasContext.fillStyle = "red";
-    canvasContext.arc(15, 4, 2, 0, 2*Math.PI);
-    canvasContext.fill();
-    canvasContext.restore();
-}
-
-
-function updateLoggedIn(user) {
-    loggedIn = user.authenticated;
-    if (loggedIn)
-        restricted = user.restricted;
-    updateBadgeAndTitle();
-    showStaticIcon();
-}
-
-
-// function onDataReady(xhr, callbacks) {
-//     return function(data) {
-//         if (xhr.readyState == 4) {
-//             if (xhr.status == 200) {
-//                 if (callbacks.onSuccess) {
-//                     try {
-//                         var data = JSON.parse(xhr.responseText);
-//                         callbacks.onSuccess(data);
-//                     } catch (e) {
-//                         showError("Conversion failed.");
-//                     }
-//                 }
-//             } else {
-//                 if (callbacks.onError)
-//                     callbacks.onError(xhr.responseText)
-//             }
-//             if (callbacks.onComplete)
-//                 callbacks.onComplete();
-//         }
-//     };
-// }
-
-
-function canRunConversion(tab) {
-    var rex = /^((?:chrome|file|chrome-extension|about|moz-extension|wyciwyg):.*$)/i;
-    var result = rex.exec(tab.url);
-    if (result) {
-        showError("Conversion of local URLs is not supported (" + result[1] + ").");
-        return false;
-    }
-    // is there an ongoing conversion?
-    if (animation.isRunning()) return false;
-
-    return true;
-}
-
-function createPdf(tab, apiUrl) {
-    
-    fetch(apiUrl, {
-        method: 'post',
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: "src=" + escape(tab.url),
-        credentials: 'include',
-    })
-        .then(json)
-        .then(function(data) {
-            if (data.status === 'ok') {
-                chrome.tabs.update(tab.id, {url: data.url});
-	        } else if (data.status === 'error') {
-                showError(data.message);
-            } else if (data.status === 'redirect') {
-                // tbd
-            }
-            animation.stop();
-            if (data.user) {
-                updateLoggedIn(data.user);
-            }
-        })
-        .catch(function(err) {
-            showError(err.message)
-            animation.stop();
-        });
-    
-    // var xhr = new XMLHttpRequest();
-    // xhr.onreadystatechange = onDataReady(xhr, {
-    //     onSuccess: function(data) {
-    //         if (data.status === 'ok') {
-    //             chrome.tabs.update(tab.id, {url: data.url});
-	//         } else if (data.status === 'error') {
-    //             showError(data.message);
-    //         } else if (data.status === 'redirect') {
-    //                   // tbd
-    //         }
-    //         updateLoggedIn(data.user);
-    //     },
-    //     
-    //     onError: function(responseText) {
-    //         try {
-    //             var data = JSON.parse(xhr.responseText);
-    //             var error = data.error || "Conversion failed."
-    //             showError(error);
-    //         } catch (e) {
-    //             showError("Conversion failed.");
-    //         }
-    //     },
-    // 
-    //     onComplete: function() { 
-    //         animation.stop(); 
-    //     }
-    // });
-    // 
-    // xhr.open('POST', apiUrl, true);
-    // xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    // xhr.send("src=" + escape(tab.url));
-};
 
 
 function init() {
@@ -210,56 +188,151 @@ function init() {
     // localStorage.updatedToVersion = version;
 }
 
-var baseUrl = 'https://dev.pdfcrowd.com'
-var apiUrls = {
-    1: baseUrl + '/session/json/convert/uri/',
-    2: baseUrl + '/session/json/convert/uri/v2/'
+
+
+
+async function createPdfEx(url, apiUrl) {
+    return new Promise((resolve, reject) => {
+        fetch(apiUrl, {
+            method: 'post',
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: "src=" + escape(url),
+            credentials: 'include',
+        })
+            .then(json)
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    resolve(data)
+	            } else if (data.status === 'error') {
+                    reject(data.message)
+                } else {
+                    reject(`Unexpected status: ${data.status}.`)
+                }
+            })
+            .catch(function(err) {
+                reject(err.message)
+            });        
+    });
 }
 
-var apiVersionUrl = baseUrl + '/session/api-version/'
 
 
 
-function status(response) {
-    if (response.status >= 200 && response.status < 300) {
-        return Promise.resolve(response);
-    } else {
-        return Promise.reject(new Error("Try again later."));
-    }
+async function getUserInfo() {
+    return new Promise((resolve, reject) => {
+        fetch(apiVersionUrl)
+            .then(status)
+            .then(json)
+            .then(function(data){
+                resolve(data)
+	        })
+            .catch(function(err) {
+                reject(err.message)
+            });        
+    });
 }
 
-chrome.action.onClicked.addListener(async (tab) => {
-    if (!canRunConversion(tab)) {
-        return;
-    }
 
-    var iconFile = "icons/icon19.png";
-    var response = await fetch(chrome.runtime.getURL(iconFile));
-    var blob = await response.blob()
-    image = await createImageBitmap(blob);
-    canvas = new OffscreenCanvas(image.width, image.height);
-    canvasContext = canvas.getContext("2d");
-    canvasContext.drawImage(image, 0, 0);
-    updateBadgeAndTitle();
+function convertPage(url)
+{
+    convCtx.start(url);
 
-    clearError();
-    animation.start();
+    // fetch info about the user
+    getUserInfo()
+        .then((data) => {
 
-    // find out the api version for the current user
-    fetch(apiVersionUrl)
-        .then(status)
-        .then(json)
-        .then(function(data){
+            // determine the API version to use
+            convCtx.updateLicenseInfo(data);
             var apiUrl = apiUrls[data.api_version];
             if (apiUrl === undefined) {
                 apiUrl = apiUrls[2];
             }
-            createPdf(tab, apiUrl);
-        })
-        .catch(function(err){
-            showError(err.message);
-            animation.stop();
-        });
-});
 
-init();
+            // convert to pdf
+            createPdfEx(url, apiUrl)
+                .then((data) => {
+                    if (data.status === 'ok') {
+                        convCtx.success(data)
+	                } else if (data.status === 'error') {
+                        convCtx.error(data.message)
+                    } else {
+                        convCtx.error(`Unexpected status: ${data.status}.`)
+                    }
+                })
+
+                // pdf conversion error
+                .catch((error) => {
+                    convCtx.error(error);
+                });
+        })
+
+        // user data fetch error
+        .catch((error) => {
+            convCtx.error(error);
+        });
+}
+
+
+
+
+function getCached(url, callback) {
+    storageGet('result_cache', function(result_cache) {
+        if (result_cache) {
+            var record = result_cache[url];
+            if (record) {
+                let elapsed = Date.now() - record.timestamp_saved;
+                if (elapsed <= resultCacheTimeout) {
+                    chrome.runtime.sendMessage({
+                        status: 'cached_data',
+                        data: record,
+                        url: url,
+                    });
+                    callback(true);
+                    return;
+                } 
+            }
+        }
+        callback(false);
+    });
+}
+
+
+
+function convertUrl(url, force=false) {
+    console.log(url);
+
+    function tryConversion() {
+        if (convCtx.canRun(url)) {
+            convertPage(url);
+        }
+    }
+
+    if (force) {
+        tryConversion(url);
+    } else {
+        getCached(url, function(found) {
+            if (!found) {
+                tryConversion(url);
+            }
+        });
+    }
+}
+
+
+
+// // ---------------------------------------------------------------------------
+// //  listeners
+
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if(request.message == 'convert_url') {
+        convertUrl(request.url, request.force);
+    }
+
+    else if (request.message == 'fetch_from_cache') {
+        getCached(request.url, function(isCached) {
+            sendResponse({is_cached: isCached});
+        });
+        return true;
+    }
+});

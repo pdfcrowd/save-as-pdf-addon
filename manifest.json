@@ -1,10 +1,11 @@
 {
     "name": "Save as PDF",
-    "version": "1.13",
+    "version": "2.00",
     "manifest_version": 3,
     "description": "Lets you download web pages as PDF in one click.",
     "permissions": [
-        "tabs"
+        "tabs",
+        "storage"
     ],
     
     "host_permissions": [
@@ -13,18 +14,32 @@
 
     "action": {
         "default_icon": { "16": "icons/icon16.png",
-                          "48": "icons/icon48.png",
-                          "128": "icons/icon128.png" }
+                          "24": "icons/icon24.png",
+                          "32": "icons/icon32.png",
+                          "48": "icons/icon32.png",
+                          "64": "icons/icon64.png",
+                          "128": "icons/icon128.png" },
+        "default_popup": "popup.html",
+        "default_title": "Save as PDF by Pdfcrowd.com"
+            
     },
 
     "icons": { "16": "icons/icon16.png",
-               "48": "icons/icon48.png",
-               "128": "icons/icon128.png" },
+               "24": "icons/icon24.png",
+               "32": "icons/icon32.png",
+               "48": "icons/icon32.png",
+               "64": "icons/icon64.png",
+               "128": "icons/icon128.png"
+             },
 
     "background" : {
-        "service_worker": "background.js"
+        "service_worker": "background.js",
+        "type": "module"
     },
     
-    "options_ui" : { "page": "options.html" },
+    "options_ui" : {
+        "page": "options.html",
+        "open_in_tab": false
+    },
     "minimum_chrome_version" : "18"
 }

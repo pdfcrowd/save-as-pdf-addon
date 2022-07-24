@@ -1,0 +1,180 @@
+body {
+    min-width: 200px;
+}
+
+.error {
+    display: none;
+    color: red;
+    max-width: 300px;
+    max-height: 200px;
+    overflow-wrap: break-word;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.in-progress, .success, .error, .info, .retry, .convert {
+    display: none;
+}
+
+.content-wrapper {
+    min-height: 55px;
+    margin-top: 1.25rem;
+}
+
+
+
+/* --------------------------------------------------------------------------- */
+/* Title */
+
+.title-wrapper {
+    position: relative;
+}
+
+.title {
+    margin-bottom: 0;
+}
+
+.title-lead {
+    margin-top: 0;
+    color: #555;
+}
+
+.license {
+    position: absolute;
+    right: 8px;
+    top: 0px;
+}
+
+.lic-badge {
+    color: white;
+    padding: 0 .25rem;
+    border-radius: 3px;
+    display: none;
+}
+
+.lic-pro {
+    width: 32px;
+    background-color: gold;
+    /* background-color: orange; */
+    -webkit-mask: url("icons/3rd/crown.svg") no-repeat center;
+    mask: url("icons/3rd/crown.svg") no-repeat center;
+}
+
+.lic-free {
+    background-color: slategray;
+}
+
+.lic-free a {
+    color: white;
+    text-decoration: none;
+}
+
+.lic-free:hover {
+    background-color: DarkSlateGray;
+}
+
+
+/* --------------------------------------------------------------------------- */
+/* Buttons */
+
+.btn {
+    padding: 0.25rem .5rem;
+    color: white;
+    background-color: steelblue;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.btn:hover {
+    background-color: #356388;
+}
+
+
+/* --------------------------------------------------------------------------- */
+/* Bottom block */
+
+.bottom-block {
+    /* margin-top: 2rem; */
+}
+
+.bottom-block span {
+    display: inline-block;
+    width: 18px;
+    margin: 0 4px;
+    background-color: lightslategray;
+    cursor: pointer;
+}
+
+.bottom-block span:hover {
+    background-color: black;
+}
+
+.retry {
+    -webkit-mask: url("icons/3rd/refresh.svg") no-repeat center;
+    mask: url("icons/3rd/refresh.svg") no-repeat center;
+}
+
+.settings {
+    -webkit-mask: url("icons/3rd/gear.svg") no-repeat center;
+    mask: url("icons/3rd/gear.svg") no-repeat center;
+}
+
+
+
+/* --------------------------------------------------------------------------- */
+/* Footer */
+
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 600;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+
+
+
+
+
+
+
+.spinner-wrapper {
+    position: relative;
+    /* background: url("pdficon2.png") no-repeat center; */
+    /* background-size: 32px */
+}
+
+.spinner-overlay {
+    position:absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    
+    color:white;
+    font-weight: 700;
+    text-align: center;
+    background-color: #1e5786;
+    border-radius: 4px;
+    font-size: 10px;
+    
+    padding: 0 .25rem;
+                         
+}
+
+
+
+
