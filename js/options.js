@@ -12,13 +12,33 @@ const sessionInfoUrl = baseUrl + '/session/info/'
 
 let defaultOptions = {
     instantConversion: false,
+    downloadsSubfolder: "",
+    filenamePrefix: "",
 }
 
 
+// load options from storage
 function getOptions(callback) {
-    storageGet('options', (item) => {
-        callback(item || defaultOptions);
+    storageGet('options', (saved) => {
+        let rv = {};
+        Object.assign(rv, defaultOptions);
+        if (saved) {
+            Object.assign(rv, saved);
+        }
+        callback(rv);
     });
+}
+
+function saveOptions(options) {
+    ['downloadsSubfolder', 'filenamePrefix'].forEach((item) => {
+        let val = options[item] || "";
+        val = val.replace(/^\.+/, '');
+        val = val.replace(/^\/+/, '');
+        val = val.replaceAll(/[^0-9a-z_ $-]/ig, '');
+        options[item] = val;
+    });
+    storageSet("options", options);
+    return options;
 }
 
 
@@ -48,16 +68,27 @@ function fetchSessionInfo(callback) {
 }
 
 
-function initForm() {
-    getOptions(function(options) {
+function initForm(options) {
+    function init(options) {
         document.querySelectorAll('form .option').forEach(function(item) {
+            let val = options[item.name];
             if (item.type == "checkbox") {
-                item.checked = options[item.name] ? true : false
+                item.checked = val ? true : false
             } else {
-                item.value = options[item.name];
+                item.value = val;
             }
         });
-    });
+    }
+
+    if (options) {
+        init(options)
+    } else {    
+        getOptions(function(options) {
+            console.log(options);
+            init(options);
+        });
+    }
+        
 
 }
 
@@ -65,9 +96,7 @@ function initForm() {
 
 window.addEventListener("load",function(event) {
     
-    expandLinks((onClickEvent) => {
-        window.close();
-    });
+    expandLinks();
 
     // quit if the script was not loaded by options.html
     let saveButton = document.querySelector('button.save');
@@ -76,24 +105,43 @@ window.addEventListener("load",function(event) {
     
     initForm();
  
-    // save button handler to save the options
+    // save options button handler
     saveButton.addEventListener("click", function(event) {
         event.preventDefault();
-
+        saveButton.disabled = true;
+        
         let options = {};
-        document.querySelectorAll('form .option').forEach(function(item) {
+        document.querySelectorAll('form .option').forEach((item) => {
             if (item.type == "checkbox") {
                 options[item.name] = item.checked;
             } else {
                 options[item.name] = item.value;
             }
         });
-        
-        //console.log(options);
-        storageSet("options", options);
-
-        window.close();
+        let saved = saveOptions(options);
+        initForm(saved);
+        //window.close();
     });
+
+    // help toggle
+    document.querySelector('.toggle-help').addEventListener("click", (event) => {
+        event.preventDefault();
+        document.querySelectorAll('.help-row').forEach((item) => {
+            let isVisible = getComputedStyle(item)['display'] != 'none';
+            item.style.display = isVisible ? "none" : "table-row";
+        });
+    });
+
+    document.querySelectorAll('form.options input').forEach((item) => {
+        item.addEventListener("change", (event) => {
+            saveButton.disabled = false;
+        });
+        item.addEventListener("input", (event) => {
+            saveButton.disabled = false;
+        });
+        
+    });
+
 
     // fetch license info
     showError();
@@ -115,8 +163,6 @@ window.addEventListener("load",function(event) {
         fetchSessionInfo((err, data) => {});    
     });
     
-
-    // fetch
 
 
 });

@@ -1,4 +1,16 @@
-export const baseUrl = 'https://dev.pdfcrowd.com';
+
+const manifestData = chrome.runtime.getManifest();
+
+export const isManifestV2 = manifestData.manifest_version == 2;
+export const isFirefox = navigator.userAgent.indexOf("Chrome") == -1
+
+export const baseUrl = (isManifestV2
+                        ? manifestData.permissions[0]
+                        : manifestData.host_permissions).replace(/\/+$/, '');
+
+if (!baseUrl.startsWith('https://')) {
+    throw("The server URL must be the first item in the permissions or host_permissions array")
+}
 
 const linkLogIn = baseUrl + '/user/sign_in/?ref=plugin'
 const linkBuyLicense = baseUrl + '/pricing/license/?ref=plugin'
@@ -6,6 +18,7 @@ const linkConversionSettings = baseUrl + '/html-to-pdf/?ref=plugin#convert_by_ur
 const linkPluginHome = baseUrl + '/save-as-pdf-addon/?ref=plugin'
 const linkHtmlToPdfApi = baseUrl + '/api/html-to-pdf-api/?ref=plugin'
 const linkSaveAsPdfWP = baseUrl + '/save-as-pdf-wordpress-plugin/?ref=plugin'
+const linkAccountLicense = baseUrl + '/user/account/browser-license/?ref=plugin'
 
 const linkToCssMapping = {
     '.link-log-in': linkLogIn,
@@ -14,14 +27,21 @@ const linkToCssMapping = {
     '.link-plugin-home': linkPluginHome,
     '.link-html-to-pdf-api': linkHtmlToPdfApi,
     '.link-save-as-pdf-wp': linkSaveAsPdfWP,
+    '.link-account-license': linkAccountLicense,
 };
 
 
-export function expandLinks(onClick) {
+export function expandLinks(onClick, options) {
+    options = Object.assign({
+        blankTarget: true
+    }, options||{});
     for (let selector in linkToCssMapping) {
         document.querySelectorAll(selector).forEach(function(item) {
             item.setAttribute('href', linkToCssMapping[selector]);
-            item.setAttribute('target', "_blank");
+            
+            if (options.blankTarget) {
+                item.setAttribute('target', "_blank");
+            }
 
             if (onClick) {
                 item.addEventListener("click", function(event) {
@@ -31,6 +51,8 @@ export function expandLinks(onClick) {
         });
     }
 }
+
+
 
 
 
@@ -100,3 +122,10 @@ export function storageGet(key, callback) {
         callback(val);
     });
 }
+
+
+
+
+
+
+

@@ -2,11 +2,10 @@
 
 
 Save as PDF is a browser add-on that lets you save web pages to PDF. It uses the
-Pdfcrowd [HTML to PDF](https://pdfcrowd.com) web service.
+Pdfcrowd [HTML to PDF](https://pdfcrowd.com/api/html-to-pdf-api/) web service.
 
 
-Install the extension:
- <https://chrome.google.com/extensions/detail/kpdjmbiefanbdgnkcikhllpmjnnllbbc>
+Install the extension for [Firefox](https://addons.mozilla.org/en-US/firefox/addon/220850/) or [Google Chrome](https://chrome.google.com/extensions/detail/kpdjmbiefanbdgnkcikhllpmjnnllbbc).
 
 Pdfcrowd:
  <https://pdfcrowd.com>
@@ -14,13 +13,13 @@ Pdfcrowd:
 Project homepage at GitHub:
  <https://github.com/pdfcrowd/save-as-pdf-addon/>
 
-Enter an issue:
+Create an issue:
  <https://github.com/pdfcrowd/save-as-pdf-addon/issues/>
  
  
 # License (MIT License)
 
-Copyright (c) 2011-2017 pdfcrowd.com <support@pdfcrowd.com>
+Copyright (c) 2011-2022 pdfcrowd.com <support@pdfcrowd.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

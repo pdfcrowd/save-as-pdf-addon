@@ -1,3 +1,4 @@
+
 body {
     min-width: 200px;
 }
@@ -16,13 +17,17 @@ body {
     text-align: center;
 }
 
-.in-progress, .success, .error, .info, .retry, .convert {
+.in-progress, .success, .error, .info, .retry, .convert, .nothing-to-do {
     display: none;
 }
 
 .content-wrapper {
     min-height: 55px;
     margin-top: 1.25rem;
+}
+
+.success, .convert {
+    padding-top: 0.25rem;
 }
 
 
@@ -57,24 +62,27 @@ body {
 }
 
 .lic-pro {
-    width: 32px;
-    background-color: gold;
-    /* background-color: orange; */
-    -webkit-mask: url("icons/3rd/crown.svg") no-repeat center;
-    mask: url("icons/3rd/crown.svg") no-repeat center;
+    background-color: #f63;
+    color: white;
+    font-weight: 500;
+    /* width: 32px; */
+    /* background-color: gold; */
+    /* -webkit-mask: url("icons/3rd/crown.svg") no-repeat center; */
+    /* mask: url("icons/3rd/crown.svg") no-repeat center; */
 }
 
 .lic-free {
     background-color: slategray;
 }
 
-.lic-free a {
+.lic-free a, .lic-pro a {
     color: white;
     text-decoration: none;
 }
 
 .lic-free:hover {
-    background-color: DarkSlateGray;
+    /* background-color: DarkSlateGray; */
+    background-color: #1d3030;
 }
 
 
@@ -100,11 +108,13 @@ body {
 
 .bottom-block {
     /* margin-top: 2rem; */
+    margin-bottom: .5rem;
 }
 
 .bottom-block span {
     display: inline-block;
-    width: 18px;
+    width: 19px;
+    height: 19px;
     margin: 0 4px;
     background-color: lightslategray;
     cursor: pointer;
@@ -115,13 +125,18 @@ body {
 }
 
 .retry {
-    -webkit-mask: url("icons/3rd/refresh.svg") no-repeat center;
-    mask: url("icons/3rd/refresh.svg") no-repeat center;
+    -webkit-mask: url("../icons/3rd/refresh.svg") no-repeat center;
+    mask: url("../icons/3rd/refresh.svg") no-repeat center;
 }
 
 .settings {
-    -webkit-mask: url("icons/3rd/gear.svg") no-repeat center;
-    mask: url("icons/3rd/gear.svg") no-repeat center;
+    -webkit-mask: url("../icons/3rd/gear.svg") no-repeat center;
+    mask: url("../icons/3rd/gear.svg") no-repeat center;
+}
+
+.help {
+    -webkit-mask: url("../icons/3rd/circle-question.svg") no-repeat center;
+    mask: url("../icons/3rd/circle-question.svg") no-repeat center;
 }
 
 

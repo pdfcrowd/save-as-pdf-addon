@@ -1,18 +1,9 @@
 "use strict";
 
 import getOptions from './options.js';
-import { show, hide, expandLinks, setHTML } from './common.js';
+import { show, hide, expandLinks, setHTML, isFirefox } from './common.js';
 
-async function getTab() {
-    let queryOptions = {
-        active: true,
-        currentWindow: true,
-        //lastFocusedWindow: true
-    };
-    let tabs = await chrome.tabs.query(queryOptions);
-    return tabs[0];
-}
-
+const apiRoot = isFirefox ? 'browser' : 'chrome';
 
 function isUrlOk(url) {
     if (!url) return false;
@@ -21,32 +12,63 @@ function isUrlOk(url) {
 }
 
 
+function getTab(callback) {
+    let queryOptions = {
+        active: true,
+        currentWindow: true,
+        //lastFocusedWindow: true
+    };
+    chrome.tabs.query(queryOptions, (tabs) => {
+        callback(tabs[0]);
+    });
+}
+
+
+const dateVars = {
+    Y: (d) => { return d.getFullYear() },
+    M: (d) => { return d.getMonth()+1 },
+    D: (d) => { return d.getDate() },
+    h: (d) => { return d.getHours() },
+    m: (d) => { return d.getMinutes() },
+    s: (d) => { return d.getSeconds() },
+}
+
+function expandDownloadPrefix(options) {
+    let now = new Date()
+    function expand(str) {
+        return str.replaceAll(/\$[YMDhms]/g, (match) => {
+            let val = dateVars[match[1]](now)
+            return String(val).padStart(2, '0');
+        });
+    }
+    
+    let subdir = expand(options.downloadsSubfolder || '');
+    let prefix = expand(options.filenamePrefix || '');
+
+    let rv = subdir
+        ? `${subdir}/${prefix}`
+        : prefix;
+    
+    console.log(rv);
+    return rv;
+}
+
 
 
 window.addEventListener("load",function(event) {
-    console.log("popup opened");
+    //console.log("popup opened");
 
     var thisUrl;
     var thisOptions;
 
     expandLinks();
     
-    getTab().then(tab => {
+    getTab((tab) => {
         thisUrl = tab.url;
 
         if (!isUrlOk(thisUrl)) {
             hideAll();
-            setError({
-                status: "error",
-                message: "This page can't be converted.",
-                can_retry: false,
-            });
-            
-            // chrome.runtime.sendMessage({
-            //     status: "error",
-            //     message: "1Can't convert this page.",
-            //     can_retry: false,
-            // });
+            show('.nothing-to-do');
             return;
         }
         
@@ -65,13 +87,20 @@ window.addEventListener("load",function(event) {
             else
             {
                 let payload = {
-                    message: "fetch_from_cache",
+                    message: "get_url_info",
                     url: thisUrl,
                 };
                 chrome.runtime.sendMessage(payload, (response) => {
-                    if (!response.is_cached) {
-                        hideAll();
-                        show(".convert");
+                    if (response) {
+                        if (response.is_url_running) {
+                            hideAll();
+                            setInProgress(true);
+                        } else if (!response.is_cached) {
+                            hideAll();
+                            show(".convert");
+                        }
+                    } else {
+                        console.error(chrome.runtime.lastError);
                     }
                 });
             }
@@ -98,6 +127,25 @@ window.addEventListener("load",function(event) {
         event.preventDefault();
         chrome.runtime.openOptionsPage();
     });
+
+    // download button
+    let downloadButton = document.querySelector(".download");
+    downloadButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        let prefix = expandDownloadPrefix(thisOptions);
+        window[apiRoot].downloads.download({
+            filename: prefix + downloadButton.getAttribute('data-filename'),
+            url: downloadButton.getAttribute('data-url'),
+            saveAs: false
+        }, (downloadId) => {
+            if (downloadId != undefined) {
+                console.log("download ok");
+            } else {
+                console.error("download failed"); // the message is in runtime.lastError
+            }
+        });
+    });
+    
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         console.log(request);
@@ -156,7 +204,7 @@ window.addEventListener("load",function(event) {
     });
 
     function hideAll() {
-        let selector = ".in-progress, .success, .error, .info, .retry, .convert";
+        let selector = ".in-progress, .success, .error, .info, .retry, .convert, .nothing-to-do";
         document.querySelectorAll(selector).forEach(function(item) {
             item.style.display = 'none';
         });
@@ -194,8 +242,10 @@ window.addEventListener("load",function(event) {
     
     function setSuccess(data) {
         if (data) {
-            document.querySelector(".download").href = data.url;
+            //document.querySelector(".download").href = data.url;
             document.querySelector(".open").href = data.url_inline;
+            document.querySelector(".download").setAttribute("data-filename", data.file_name);
+            document.querySelector(".download").setAttribute("data-url", data.url);
             show(".success");
             setRetry("Refresh");
         } else {
@@ -205,7 +255,6 @@ window.addEventListener("load",function(event) {
 
 
     function setRetry(val) {
-        document.querySelector(".retry").title = val
         document.querySelector(".retry").style.display = val ? 'inline-block' : 'none';
     }
 });

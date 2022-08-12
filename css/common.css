@@ -1,0 +1,13 @@
+/* firefox specific */
+@-moz-document url-prefix(){
+    body {
+        font-family: "Noto Sans", Arial, sans-serif;
+        font-size: 75%
+    }
+    hr {
+        border-color: #ddd;
+    }
+    .firefox-hide {
+        display: none;
+    }
+}

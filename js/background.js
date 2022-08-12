@@ -16,7 +16,8 @@
 
 import {
     baseUrl, status, json,
-    storageSet, storageGet
+    storageSet, storageGet,
+    isFirefox, isManifestV2
 } from "./common.js";
 
 var convCtx = new ConversionContext();
@@ -31,6 +32,7 @@ var apiUrls = {
 }
 
 var apiVersionUrl = baseUrl + '/session/api-version/'
+const apiRoot = isFirefox ? 'browser' : 'chrome';
 
 
 
@@ -45,9 +47,10 @@ function ConversionContext() {
 
 ConversionContext.prototype.sendMessage = function(payload, url) {
     payload['url'] = url || this.url
-    chrome.runtime.sendMessage(payload).catch(function() {
+    window[apiRoot].runtime.sendMessage(payload, (response) => {
+        // prevents error message in the console
+        chrome.runtime.lastError;
         // popup is closed
-        // console.log('sendMessage failed');
     });
 }
 
@@ -71,16 +74,26 @@ ConversionContext.prototype.saveData = function() {
 
             // store to cache
             records[that.url] = that.data;
-            storageSet('result_cache', records)
-                .then(function() {
-                    console.log(records);
-                });
+            storageSet('result_cache', records, () => {
+                console.log(records);
+            })
         });
     }
 }
 
+ConversionContext.prototype.removeFromCache = function(url) {
+    storageGet('result_cache', function(records) {
+        var records = records || {};
+        delete records[url];
+        storageSet('result_cache', records, () => {
+            console.log(records);
+        })
+    });
+}
+
 ConversionContext.prototype.start = function(url) {
     this._isRunning = true;
+    this.removeFromCache(url);
     updateBadge(this._isRunning);
     this.data = { 'timestamp_start': Date.now() }
     this.url = url;
@@ -115,6 +128,9 @@ ConversionContext.prototype.canRun = function(url) {
     return false;
 }
 
+ConversionContext.prototype.isUrlRunning = function(url) {
+    return this._isRunning && this.url===url;
+}
 
 ConversionContext.prototype.updateLicenseInfo = function(data) {
     this.sendMessage({
@@ -147,6 +163,7 @@ ConversionContext.prototype.error = function(message, canRetry=true) {
     };
     this.sendMessage(payload);
     this.data['error'] = payload;
+    this.saveData();
 }
 
 
@@ -169,13 +186,17 @@ ConversionContext.prototype.sendConversionInfo = function() {
 
 
 function updateBadge(isRunning) {
+    const action = isManifestV2 ? 'browserAction' : 'action';
+
     if (isRunning) {
-        chrome.action.setBadgeText({text: 'C'});
-        chrome.action.setBadgeBackgroundColor({color:"#ff0"});
+        chrome[action].setBadgeText({text: '...'});
+        chrome[action].setBadgeBackgroundColor({color:"#ff0"});
     } else {
-        chrome.action.setBadgeBackgroundColor({color:[0, 0, 0, 0]});
-        chrome.action.setBadgeText({text: ''});
+        chrome[action].setBadgeBackgroundColor({color:[0, 0, 0, 0]});
+        chrome[action].setBadgeText({text: ''});
     }
+
+    console.log('badge')
 }
 
 
@@ -191,7 +212,7 @@ function init() {
 
 
 
-async function createPdfEx(url, apiUrl) {
+function createPdfEx(url, apiUrl) {
     return new Promise((resolve, reject) => {
         fetch(apiUrl, {
             method: 'post',
@@ -218,7 +239,8 @@ async function createPdfEx(url, apiUrl) {
 
 
 
-async function getUserInfo() {
+function getUserInfo() {
+    console.log('getUserInfo')
     return new Promise((resolve, reject) => {
         fetch(apiVersionUrl)
             .then(status)
@@ -282,7 +304,7 @@ function getCached(url, callback) {
             if (record) {
                 let elapsed = Date.now() - record.timestamp_saved;
                 if (elapsed <= resultCacheTimeout) {
-                    chrome.runtime.sendMessage({
+                    window[apiRoot].runtime.sendMessage({
                         status: 'cached_data',
                         data: record,
                         url: url,
@@ -324,15 +346,25 @@ function convertUrl(url, force=false) {
 // //  listeners
 
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if(request.message == 'convert_url') {
-        convertUrl(request.url, request.force);
-    }
 
-    else if (request.message == 'fetch_from_cache') {
-        getCached(request.url, function(isCached) {
-            sendResponse({is_cached: isCached});
-        });
-        return true;
+window[apiRoot].runtime.onMessage.addListener((request, sender, sendResponse) => {
+    try {
+        if(request.message == 'convert_url') {
+            convertUrl(request.url, request.force);
+        }
+
+        else if (request.message == 'get_url_info') {
+            let isUrlRunning = convCtx.isUrlRunning(request.url);
+            getCached(request.url, function(isCached) {
+                sendResponse({
+                    is_cached: isCached,
+                    is_url_running: isUrlRunning,
+                });
+            });
+            return true;
+        }
+    } catch (exc) {
+        !isFirefox || console.error(exc);
+        throw exc;
     }
 });

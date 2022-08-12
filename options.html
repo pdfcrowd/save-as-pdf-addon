@@ -3,46 +3,24 @@
   <head>
     <title>Save as PDF Options</title>
 
-    <link rel="stylesheet" href="spinner.css">
-    <style>
-      .error {
-          display: none;
-          color: red;
-      }
-
-      .lic-info {
-          display: none;
-      }
-
-      .info-wrapper {
-          /* padding: 1rem 0; */
-          /* min-height: 70px; */
-          /* background-color: #f7f7f7; */
-      }
-
-      body {
-          padding: 0 1rem 0.5rem 1rem ;
-      }
-
-      .lic-active, .lic-not-active, .not-logged-in, .logged-in, .is-time-to-renew {
-          display: none;
-      }
-
-      .lic-info td:nth-child(2) {
-          padding-left: .5rem;
-      }
-
-      .in-progress {
-          display: inline-block;
-      }
-
-    </style>
+    <link rel="stylesheet" href="css/spinner.css">
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/options.css">
     
   </head>
   <body>
+    <div class="title-wrapper">
+      <img src="icons/icon64.png"></img>
+      <div>
+        <h2>Save as PDF</h2>
+        <div class="title-lead">by Pdfcrowd</div>
+      </div> 
+    </div>
+    
+    <hr>
 
-
-    <h3>License information</h3>
+    <div class="content-wrapper">
+    <h3>License Information</h3>
     <div class="info-wrapper">
       
       <div class="lic-info > *">
@@ -53,7 +31,7 @@
 
         <p class="not-logged-in">
           If you have the license,
-          please <a href="#" class="link-log-in">log in</a>. You must remain logged in for the plugin to apply the license.
+          please <a href="#" class="link-account-license">log in</a>. You must remain logged in for the plugin to apply the license.
         </p>
 
         <div class="logged-in">
@@ -97,26 +75,120 @@
     
 
     
-    <h3>Settings</h3>
-    <p>
-      <a href="" class="link-conversion-settings">Customize converison settings</a>
-      <span class="lic-not-active">(requires a <a href="" class="link-buy-license">license</a>)</span>
-    </p>
-    <form class="options">
-      <p style="display:flex;align-items:center;">
-        <input type="checkbox"
-               class="option"
-               id="instantConversion"
-               name="instantConversion">
-        <label for="instantConversion">&nbsp;Instant conversion</label>
-      </p>
+    <h3>Addon Settings</h3>
+    <div class="settings-wrapper">
+      <form class="options" autocomplete="off" spellcheck="false">
+        <!-- <a href="" class="toggle-help1"> -->
+          <!-- <img src="../icons/3rd/circle-question.svg" width="15" height="15"> -->
+          <span class="icon-help toggle-help">&nbsp</span>
+        <!-- </a> -->
+      <table>
+        
+        <tr>
+          <td>
+            <label for="downloadsSubfolder">Downloads subfolder</label>
+          </td>
+          <td>
+            <input type="text"
+                   id="downloadsSubfolder"
+                   name="downloadsSubfolder"
+                   class="option"
+                   value="">
+          </td>
+        </tr>
+        <tr class="help-row">
+          <td colspan="2">
+            The subfolder of your downloads directory where to save the generated PDF files.
+          </td>
+        </tr>
+        
+        <tr>
+          <td>
+            <label for="filenamePrefix">File name prefix</label>
+          </td>
+          <td>
+            <input type="text"
+                   id="filenamePrefix"
+                   name="filenamePrefix"
+                   class="option"
+                   value="">
+          </td>
+        </tr>
+
+        <tr class="help-row">
+          <td colspan="2">
+            The prefix that will be prepended to each PDF file name. Supports these variables:
+            <div class="flex-list">
+              <ul>
+                <li>$Y - year
+                <li>$M - month
+                <li>$D - day
+              </ul>
+              <ul>
+                <li>$h - hour
+                <li>$m - minute
+                <li>$s - second
+              </ul>
+            </div>              
+          </td>
+        </tr>
+
+
+        <tr>
+          <td colspan="2">
+            <div style="display:flex;align-items:center;">
+              <input type="checkbox"
+                     class="option"
+                     id="instantConversion"
+                     name="instantConversion">
+              <label for="instantConversion">
+                &nbsp;One-click conversion</label>
+            </div>
+          </td>
+        </tr>
+
+        <tr class="help-row">
+          <td colspan="2">
+            Clicking the plugin icon triggers instant conversion.
+          </td>
+        </tr>
+
+        
+
+        
+        <tr>
+          <td colspan="2">
+            <br>
+            <button class="save" disabled>Apply Changes</button>
+          </td>
+        </tr>
+      </table>
+
     </form>
 
+    </div>
+
+    <h3>Conversion Settings</h3>
+
     <p>
-      <button class="save">Close</button>
+      The converter tries to improve the readability of the output PDF by
+      removing visual clutter such as ads, pop-ups, sidebars, and so on. This
+      can be disabled in the Readability section of the settings.
+    </p>
+    
+
+    <p>
+      Click <a href="" class="link-conversion-settings">here</a> to customize the conversion settings.
+      <span class="lic-not-active">This requires a <a href="" class="link-buy-license">license</a>.</span>
     </p>
 
+    </div>
 
-    <script type="module" src="options.js"></script>
+    <br>
+    <hr>
+    <p>
+      <a href="" class="link-plugin-home">Help</a>
+    </p>
+    <script type="module" src="js/options.js"></script>
   </body>
 </html>
