@@ -4,16 +4,6 @@
 // https://github.com/GoogleChrome/chrome-extensions-samples/blob/main/api/action/demo/index.js
 // https://dev.to/anobjectisa/how-to-build-a-chrome-extension-new-manifest-v3-5edk
 
-// TBD - dev.pdfcrowd.com -> pdfcrowd.com (tady a manifest)
-// aby byla po installu defaultne pinned
-// convCtx - timeout 1min na is runnin, pak set isRunning=False
-// polish options page
-// icon -> pdf
-// context menu
-// option to log in -> nejspis do options
-// bug kdyz se to chvili necha stat tak background.js nedostava event
-// non-instant mode - do not allow to convert page (about, chrome, local)
-
 import {
     baseUrl, status, json,
     storageSet, storageGet,
@@ -56,7 +46,7 @@ ConversionContext.prototype.sendMessage = function(payload, url) {
 
 
 ConversionContext.prototype.saveData = function() {
-    console.assert(!this._isRunning);
+    //console.assert(!this._isRunning);
     if (this.url) {
         this.data['timestamp_saved'] = Date.now();
         var that = this;
@@ -67,7 +57,6 @@ ConversionContext.prototype.saveData = function() {
             let now = Date.now();
             for (let key in records) {
                 if ((now-records[key].timestamp_saved) > resultCacheTimeout) {
-                    console.log(`deleting expired ${key} from cache`);
                     delete records[key]
                 }
             }
@@ -75,7 +64,7 @@ ConversionContext.prototype.saveData = function() {
             // store to cache
             records[that.url] = that.data;
             storageSet('result_cache', records, () => {
-                console.log(records);
+                //
             })
         });
     }
@@ -86,7 +75,7 @@ ConversionContext.prototype.removeFromCache = function(url) {
         var records = records || {};
         delete records[url];
         storageSet('result_cache', records, () => {
-            console.log(records);
+            //
         })
     });
 }
@@ -168,7 +157,7 @@ ConversionContext.prototype.error = function(message, canRetry=true) {
 
 
 ConversionContext.prototype.sendConversionInfo = function() {
-    console.assert(this._isRunning);
+    //console.assert(this._isRunning);
     this.sendMessage({
         status: 'running'
     });
@@ -196,7 +185,6 @@ function updateBadge(isRunning) {
         chrome[action].setBadgeText({text: ''});
     }
 
-    console.log('badge')
 }
 
 
@@ -240,7 +228,6 @@ function createPdfEx(url, apiUrl) {
 
 
 function getUserInfo() {
-    console.log('getUserInfo')
     return new Promise((resolve, reject) => {
         fetch(apiVersionUrl)
             .then(status)
@@ -321,7 +308,6 @@ function getCached(url, callback) {
 
 
 function convertUrl(url, force=false) {
-    console.log(url);
 
     function tryConversion() {
         if (convCtx.canRun(url)) {

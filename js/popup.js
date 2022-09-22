@@ -49,7 +49,6 @@ function expandDownloadPrefix(options) {
         ? `${subdir}/${prefix}`
         : prefix;
     
-    console.log(rv);
     return rv;
 }
 
@@ -111,7 +110,6 @@ window.addEventListener("load",function(event) {
     // refresh button
     document.querySelectorAll('.retry, .convert').forEach((item) => {
         item.addEventListener("click", function(event) {
-            console.log('clicked');
             setRetry(false);
             event.preventDefault();
             chrome.runtime.sendMessage({
@@ -139,7 +137,7 @@ window.addEventListener("load",function(event) {
             saveAs: false
         }, (downloadId) => {
             if (downloadId != undefined) {
-                console.log("download ok");
+                // OK
             } else {
                 console.error("download failed"); // the message is in runtime.lastError
             }
@@ -148,10 +146,8 @@ window.addEventListener("load",function(event) {
     
 
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        console.log(request);
 
         if (request.url && request.url != thisUrl) {
-            console.log(`popup ${thisUrl} ignores ${request.url}`);
             return;
         }
 
@@ -189,7 +185,6 @@ window.addEventListener("load",function(event) {
         else if (request.status == 'cached_data')
         {
             hideAll();
-            console.log(request.data);
             var data = request.data;
             setLicenseInfo(data.license_info);
             setInProgress(false);
@@ -199,7 +194,7 @@ window.addEventListener("load",function(event) {
 
         
         else {
-            console.info("Unknown message")
+            //console.info("Unknown message")
         }
     });
 

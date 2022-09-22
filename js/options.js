@@ -48,7 +48,6 @@ function fetchSessionInfo(callback) {
     let now = Date.now()
     storageGet('session_info', function(cached) {
 
-        console.log(cached);
         if (cached && (now-cached.timestamp)<=sessionInfoTimeout) {
             callback(undefined, cached.data);
             return;
@@ -84,7 +83,6 @@ function initForm(options) {
         init(options)
     } else {    
         getOptions(function(options) {
-            console.log(options);
             init(options);
         });
     }
