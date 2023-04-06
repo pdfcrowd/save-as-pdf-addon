@@ -212,18 +212,19 @@ function init() {
 
 
 
-function createPdfEx(url, apiUrl) {
+function createPdfEx(ctx) {
     return new Promise((resolve, reject) => {
-        fetch(apiUrl, {
+        fetch(ctx.apiUrl, {
             method: 'post',
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: "src=" + escape(url),
+            body: "src=" + escape(ctx.url),
             credentials: 'include',
         })
             .then(json)
             .then(function(data) {
                 if (data.status === 'ok') {
-                    resolve(data)
+                    data.ctx = ctx;
+                    resolve(data);
 	            } else if (data.status === 'error') {
                     reject(data.message)
                 } else {
@@ -232,7 +233,50 @@ function createPdfEx(url, apiUrl) {
             })
             .catch(function(err) {
                 reject(err.message)
-            });        
+            });
+    });
+}
+
+
+function get_filename_from_url(url) {
+    url = url.replace('#', '?').replace(/\:\d+/, '');
+    url = url.split('?')[0];
+    url = url.replace(/(\.html)?\/?$/i, '');
+    name = url.replace(/^[^:]+:\/+([^\/]*?@)?/, '').replace(
+        /[^\p{L}\p{N}]/gu, '_') + '.html';
+    return name;
+}
+
+
+function createPdfFromContent(ctx) {
+    return new Promise((resolve, reject) => {
+        const formData = new FormData();
+        const blob = new Blob([ctx.content], {type: 'text/plain'});
+        formData.append('src', blob, get_filename_from_url(ctx.url));
+        formData.append('conversion_source', 'upload');
+        formData.append('disable_javascript', '1');
+
+        fetch(ctx.apiUrl, {
+            method: 'post',
+            body: formData,
+            credentials: 'include',
+        })
+            .then(json)
+            .then(function(data) {
+                if (data.status === 'ok') {
+                    delete ctx.content;
+                    data.ctx = ctx;
+                    resolve(data);
+                } else if (data.status === 'error') {
+                    reject(data.message)
+                } else {
+                    reject(`Unexpected status: ${data.status}.`)
+                }
+            })
+            .catch(function(err) {
+                console.log(err);
+                reject(err.message)
+            });
     });
 }
 
@@ -250,19 +294,155 @@ function getUserInfo() {
 	        })
             .catch(function(err) {
                 reject(err.message)
-            });        
+            });
     });
 }
 
 
-function convertPage(url)
+// define the content script to execute
+const contentScript = function() {
+    try {
+        const dst_doc = document.implementation.createHTMLDocument("");
+        const cloned = document.documentElement.cloneNode(true);
+        dst_doc.documentElement.replaceWith(cloned);
+        const head = dst_doc.head;
+
+        // create a base element with the desired absolute URL
+        let base = dst_doc.querySelector('base[href]');
+        if(base) {
+            // rewrite href, so it includes protocol too
+            base.setAttribute('href', base.href);
+        } else {
+            base = dst_doc.createElement('base');
+            const host = window.location.host;
+            const protocol = window.location.protocol;
+            base.href = protocol + '//' + host + '/';
+            head.insertBefore(base, head.firstChild);
+        }
+
+        // // remove all scripts
+        // let elements = dst_doc.getElementsByTagName('script');
+        // for(let i = elements.length - 1; i >= 0; i--) {
+        //     elements[i].remove();
+        // }
+
+        // remove all styles
+        let elements = dst_doc.getElementsByTagName('style');
+        for(let i = elements.length - 1; i >= 0; i--) {
+            elements[i].remove();
+        }
+
+        // remove all noscript elements
+        elements = dst_doc.getElementsByTagName('noscript');
+        for(let i = elements.length - 1; i >= 0; i--) {
+            elements[i].remove();
+        }
+
+        // preserve styles from src document
+        const failed_styles = new Set();
+        const styleSheets = document.styleSheets;
+        for (var i = 0; i < styleSheets.length; i++) {
+            var styleSheet = styleSheets[i];
+            try {
+                const rules = styleSheet.cssRules || styleSheet.rules;
+                let styles = '';
+                for(let j = 0; j < rules.length; j++) {
+                    let rule = rules[j];
+                    styles += rule.cssText;
+                }
+
+                if(styles) {
+                    const style = dst_doc.createElement('style');
+                    style.innerHTML = styles;
+                    head.appendChild(style);
+                }
+            } catch(error) {
+                failed_styles.add(styleSheet.href);
+            }
+        }
+
+        const links = dst_doc.getElementsByTagName('link');
+        for(let i = links.length - 1; i >= 0; i--) {
+            const link = links[i];
+            if(link.rel === 'stylesheet' || link.as === 'style') {
+                if(!failed_styles.has(link.href)) {
+                    link.remove();
+                }
+            }
+        }
+
+        // write input field values into element properties
+        // so all values are stored in outerHTML
+        const src_inputs = document.querySelectorAll('input, select, textarea');
+        const dst_inputs = dst_doc.querySelectorAll('input, select, textarea');
+
+        if(src_inputs.length === dst_inputs.length) {
+            // Loop through all form elements
+            for(let i = 0; i < src_inputs.length; i++) {
+                const src_element = src_inputs[i];
+                const dst_element = dst_inputs[i];
+                if(src_element.type == 'checkbox' ||
+                   src_element.type == 'radio') {
+                    if(src_element.checked) {
+                        dst_element.setAttribute('checked', 'checked');
+                    } else {
+                        dst_element.removeAttribute('checked');
+                    }
+                } else if(src_element.type == 'textarea') {
+                    dst_element.innerHTML = src_element.value;
+                } else if(src_element.tagName === 'SELECT') {
+                    const src_options = src_element.querySelectorAll('option');
+                    const dst_options = dst_element.querySelectorAll('option');
+                    if(src_options.length === dst_options.length) {
+                        for(let j = 0; j < src_options.length; j++) {
+                            const src_option = src_options[j];
+                            const dst_option = dst_options[j];
+                            if(src_option.selected) {
+                                dst_option.setAttribute('selected', 'selected');
+                            } else {
+                                dst_option.removeAttribute('selected');
+                            }
+                        }
+                    }
+                } else {
+                    dst_element.setAttribute('value', src_element.value);
+                }
+            }
+        }
+        return dst_doc.documentElement.outerHTML;
+    } catch(error) {
+        console.error(`Pdfcrowd error: ${error}`);
+        return '';
+    }
+}
+
+function convertPageFn(ctx) {
+    const fn = ctx.conversionMode === 'content'
+          ? createPdfFromContent : createPdfEx;
+    fn(ctx)
+        .then((data) => {
+            if (data.status === 'ok') {
+                convCtx.success(data)
+	        } else if (data.status === 'error') {
+                convCtx.error(data.message)
+            } else {
+                convCtx.error(`Unexpected status: ${data.status}.`)
+            }
+        })
+
+    // pdf conversion error
+        .catch((error) => {
+            convCtx.error(error);
+        });
+}
+
+function convertPage(url, conversionMode, isAlternate)
 {
     convCtx.start(url);
 
     // fetch info about the user
     getUserInfo()
         .then((data) => {
-
             // determine the API version to use
             convCtx.updateLicenseInfo(data);
             var apiUrl = apiUrls[data.api_version];
@@ -270,22 +450,30 @@ function convertPage(url)
                 apiUrl = apiUrls[2];
             }
 
-            // convert to pdf
-            createPdfEx(url, apiUrl)
-                .then((data) => {
-                    if (data.status === 'ok') {
-                        convCtx.success(data)
-	                } else if (data.status === 'error') {
-                        convCtx.error(data.message)
-                    } else {
-                        convCtx.error(`Unexpected status: ${data.status}.`)
-                    }
-                })
+            const ctx = {
+                url: url,
+                conversionMode: conversionMode,
+                apiUrl: apiUrl,
+                domain: new URL(url).hostname,
+                isAlternate: isAlternate
+            };
 
-                // pdf conversion error
-                .catch((error) => {
-                    convCtx.error(error);
+            // convertPageFn(ctx);
+
+            if(conversionMode === 'content') {
+                chrome.tabs.executeScript({
+                    code: '(' + contentScript + ')();'
+                }, function(content) {
+                    if(!content[0]) {
+                        convCtx.error('Internal error');
+                    } else {
+                        ctx.content = content;
+                        convertPageFn(ctx);
+                    }
                 });
+            } else {
+                convertPageFn(ctx);
+            }
         })
 
         // user data fetch error
@@ -320,12 +508,12 @@ function getCached(url, callback) {
 
 
 
-function convertUrl(url, force=false) {
+function convertUrl(url, conversionMode, isAlternate, force=false) {
     console.log(url);
 
     function tryConversion() {
         if (convCtx.canRun(url)) {
-            convertPage(url);
+            convertPage(url, conversionMode, isAlternate);
         }
     }
 
@@ -348,9 +536,13 @@ function convertUrl(url, force=false) {
 
 
 window[apiRoot].runtime.onMessage.addListener((request, sender, sendResponse) => {
+
     try {
         if(request.message == 'convert_url') {
-            convertUrl(request.url, request.force);
+            convertUrl(request.url,
+                       request.conversionMode,
+                       request.isAlternate,
+                       request.force);
         }
 
         else if (request.message == 'get_url_info') {

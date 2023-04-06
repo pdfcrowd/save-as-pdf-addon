@@ -1,7 +1,9 @@
 "use strict";
 
 import getOptions from './options.js';
-import { show, hide, expandLinks, setHTML, isFirefox } from './common.js';
+import { show, hide, expandLinks, setHTML, isFirefox,
+         storageGet, storageSet
+       } from './common.js';
 
 const apiRoot = isFirefox ? 'browser' : 'chrome';
 
@@ -60,9 +62,19 @@ window.addEventListener("load",function(event) {
 
     var thisUrl;
     var thisOptions;
+    let thisModes;
+
+    function getConversionMode(domain) {
+        return thisModes[domain] || 'url';
+    }
+
+    function getAltConversionMode(domain) {
+        const mode = thisModes[domain];
+        return mode === 'content' ? 'url' : 'content';
+    }
 
     expandLinks();
-    
+
     getTab((tab) => {
         thisUrl = tab.url;
 
@@ -74,51 +86,71 @@ window.addEventListener("load",function(event) {
         
         getOptions((options) => {
             thisOptions = options;
-            
-            // instant conversion
-            if (options.instantConversion) {
-                chrome.runtime.sendMessage({
+
+            storageGet('modes', (modes) => {
+                thisModes = modes || {};
+
+                // instant conversion
+                if (options.instantConversion) {
+                    chrome.runtime.sendMessage({
                         message: "convert_url",
                         url: thisUrl,
-                });
-            }
-            
-            // button or fetch from cache
-            else
-            {
-                let payload = {
-                    message: "get_url_info",
-                    url: thisUrl,
-                };
-                chrome.runtime.sendMessage(payload, (response) => {
-                    if (response) {
-                        if (response.is_url_running) {
-                            hideAll();
-                            setInProgress(true);
-                        } else if (!response.is_cached) {
-                            hideAll();
-                            show(".convert");
+                        conversionMode: getConversionMode()
+                    });
+                }
+                
+                // button or fetch from cache
+                else
+                {
+                    let payload = {
+                        message: "get_url_info",
+                        url: thisUrl,
+                    };
+                    chrome.runtime.sendMessage(payload, (response) => {
+                        if (response) {
+                            if (response.is_url_running) {
+                                hideAll();
+                                setInProgress(true);
+                            } else if (!response.is_cached) {
+                                hideAll();
+                                show(".convert");
+                            }
+                        } else {
+                            console.error(
+                                `Error: ${chrome.runtime.lastError.message}`);
                         }
-                    } else {
-                        console.error(chrome.runtime.lastError);
-                    }
-                });
-            }
+                    });
+                }
+            });
         });
 
     });
 
+    function runConversion(event, modeGetter, isAlternate) {
+        console.log('clicked');
+        setRetry(false);
+        event.preventDefault();
+        const domain = new URL(thisUrl).hostname;
+        chrome.runtime.sendMessage({
+            message: "convert_url",
+            url: thisUrl,
+            conversionMode: modeGetter(domain),
+            isAlternate: isAlternate,
+            force: true,
+        });
+    }
+
     // refresh button
     document.querySelectorAll('.retry, .convert').forEach((item) => {
         item.addEventListener("click", function(event) {
-            console.log('clicked');
-            setRetry(false);
-            event.preventDefault();
-            chrome.runtime.sendMessage({
-                message: "convert_url",
-                url: thisUrl,
-                force: true,
-            });
+            runConversion(event, getConversionMode);
+        });
+    });
+
+    document.querySelectorAll('#alt-method, #prev-method').forEach((item) => {
+        item.addEventListener("click", function(event) {
+            runConversion(
+                event, getAltConversionMode, item.id === 'alt-method');
         });
     });
 
@@ -214,7 +246,7 @@ window.addEventListener("load",function(event) {
 
     
     function setLicenseInfo(data) {
-        if (data.license) {
+        if (data && data.license) {
             show('.lic-pro');
             hide('.lic-free');
         } else {
@@ -246,8 +278,35 @@ window.addEventListener("load",function(event) {
             document.querySelector(".open").href = data.url_inline;
             document.querySelector(".download").setAttribute("data-filename", data.file_name);
             document.querySelector(".download").setAttribute("data-url", data.url);
+
+            const btn_conv_alt = document.getElementById('alt-method');
+            const btn_conv_prev = document.getElementById('prev-method');
+
+            if(data.ctx.isAlternate) {
+                btn_conv_alt.style.display = 'none';
+                btn_conv_prev.style.display = 'inline';
+            } else {
+                btn_conv_alt.style.display = 'inline';
+                btn_conv_prev.style.display = 'none';
+            }
             show(".success");
             setRetry("Refresh");
+
+            // preserve different mode than default one
+            if(data.ctx.conversionMode !== 'url') {
+                if(thisModes[data.ctx.domain] === data.ctx.conversionMode) {
+                    // do not save modes
+                    return;
+                }
+                thisModes[data.ctx.domain] = data.ctx.conversionMode;
+            } else {
+                if(!(data.ctx.domain in thisModes)) {
+                    // do not save modes
+                    return;
+                }
+                delete thisModes[data.ctx.domain];
+            }
+            storageSet("modes", thisModes);
         } else {
             hide(".success");
         }
@@ -258,4 +317,3 @@ window.addEventListener("load",function(event) {
         document.querySelector(".retry").style.display = val ? 'inline-block' : 'none';
     }
 });
-

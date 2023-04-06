@@ -22,12 +22,16 @@ body {
 }
 
 .content-wrapper {
-    min-height: 55px;
+    min-height: 80px;
     margin-top: 1.25rem;
 }
 
 .success, .convert {
     padding-top: 0.25rem;
+}
+
+.conv-method {
+    margin-top: 1rem;
 }
 
 

@@ -7,7 +7,9 @@
         "https://pdfcrowd.com/",
         "tabs",
         "storage",
-        "downloads"
+        "downloads",
+        "activeTab",
+        "scripting"
     ],
 
     
