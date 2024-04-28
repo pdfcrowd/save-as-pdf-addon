@@ -1,17 +1,19 @@
 {
     "name": "Save as PDF",
     "version": "2.1",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "description": "Download web pages as PDF in one click.",
     "permissions": [
-        "https://pdfcrowd.com/",
         "tabs",
         "storage",
         "downloads"
     ],
-
     
-    "browser_action": {
+    "host_permissions": [
+        "*://pdfcrowd.com/*"
+    ],
+    
+    "action": {
         "default_icon": { "16": "icons/icon16.png",
                           "24": "icons/icon24.png",
                           "32": "icons/icon32.png",
@@ -31,13 +33,21 @@
              },
 
     "background" : {
-        "page": "background.html",
-        "persistent": false
+        "scripts": ["js/background.js"],
+        "type": "module"
+    },
+
+    "browser_specific_settings": {
+        "gecko": {
+            "strict_min_version": "109.0"
+        }
     },
     
     "options_ui" : {
         "page": "options.html",
         "open_in_tab": true
     },
+
+    
     "minimum_chrome_version" : "100"
 }

@@ -232,7 +232,9 @@ function createPdfEx(url, apiUrl) {
 
 function getUserInfo() {
     return new Promise((resolve, reject) => {
-        fetch(apiVersionUrl)
+        fetch(apiVersionUrl, {
+            mode: 'no-cors',
+        })
             .then(status)
             .then(json)
             .then(function(data){

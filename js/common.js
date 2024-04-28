@@ -4,9 +4,11 @@ const manifestData = chrome.runtime.getManifest();
 export const isManifestV2 = manifestData.manifest_version == 2;
 export const isFirefox = navigator.userAgent.indexOf("Chrome") == -1
 
-export const baseUrl = (isManifestV2
-                        ? manifestData.permissions[0]
-                        : manifestData.host_permissions[0]).replace(/\/+$/, '');
+// export const baseUrl = (isManifestV2
+//                         ? manifestData.permissions[0]
+//     : manifestData.host_permissions[0]).replace(/\/+$/, '');
+
+export const baseUrl = 'https://pdfcrowd.com'
 
 if (!baseUrl.startsWith('https://')) {
     throw("The server URL must be the first item in the permissions or host_permissions array")
