@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="440"
+   height="280"
+   viewBox="0 0 440 280"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.5 (2060ec1f9f, 2020-04-08)"
+   sodipodi:docname="promo.svg"
+   inkscape:export-filename="/home/jarda/code/save-as-pdf-addon/graphics/promo.png"
+   inkscape:export-xdpi="192"
+   inkscape:export-ydpi="192">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.979899"
+     inkscape:cx="45.392279"
+     inkscape:cy="154.87977"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     viewbox-width="440"
+     inkscape:window-width="2560"
+     inkscape:window-height="1434"
+     inkscape:window-x="0"
+     inkscape:window-y="25"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid836"
+       empspacing="10"
+       spacingx="10"
+       spacingy="10" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-222.91665)">
+    <rect
+       style="opacity:1;fill:#1e5786;fill-opacity:1;stroke:#1e5786;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="rect834"
+       width="441.42859"
+       height="281.42856"
+       x="0"
+       y="222.91666" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:34.66666794px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       x="22.020823"
+       y="314.62177"
+       id="text840"><tspan
+         sodipodi:role="line"
+         id="tspan838"
+         x="22.020823"
+         y="314.62177"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:34.66666794px;font-family:Arial;-inkscape-font-specification:'Arial, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:1">Save Web Pages to PDF</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:28.84929466px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
+       x="22.92577"
+       y="360.06818"
+       id="text840-9"><tspan
+         sodipodi:role="line"
+         id="tspan838-2"
+         x="22.92577"
+         y="360.06818"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:21.33333397px;font-family:Arial;-inkscape-font-specification:Arial;stroke-width:1">With readability enhancements</tspan></text>
+    <g
+       transform="matrix(3.0832828,0,0,3.0832828,324.95682,344.60058)"
+       id="g1520"
+       style="stroke-width:0.32432964">
+      <polyline
+         style="clip-rule:evenodd;fill:#ffffff;fill-rule:evenodd;stroke-width:0.32432964"
+         id="polyline915"
+         points="28,28 7,28 7,25 1,25 1,7 7,7 7,1 22,1 28,10 28,28 " />
+      <g
+         id="g923"
+         style="stroke-width:0.32432964">
+        <path
+           style="fill:#434440;stroke-width:0.32432964"
+           inkscape:connector-curvature="0"
+           id="path917"
+           d="M 28.595,7.562 23.157,1.253 22.079,0.003 H 9.228 C 7.501,0.003 6.104,1.4 6.104,3.127 V 7.098 H 8.04 L 8.039,3.888 C 8.043,2.917 8.823,2.132 9.791,2.132 L 20.785,2.122 V 7.33 c 0.001,1.939 1.567,3.51 3.507,3.51 h 3.807 L 27.91,25.86 c -0.004,0.967 -0.784,1.747 -1.752,1.754 L 9.652,27.606 c -0.883,0 -1.594,-0.866 -1.6,-1.935 V 24.4 H 6.114 v 1.896 c 0,1.907 1.277,3.455 2.845,3.455 l 17.763,-0.005 c 1.726,0 3.124,-1.404 3.124,-3.126 V 9.016 L 28.595,7.562" />
+        <path
+           style="fill:#ea4c3a;stroke-width:0.32432964"
+           inkscape:connector-curvature="0"
+           id="path919"
+           d="M 20.145,25.368 H 0 V 6.129 H 20.145 V 25.368 M 1.934,23.432 H 18.208 V 8.065 H 1.934" />
+        <path
+           style="fill:none;stroke:#ea4c3a;stroke-width:0.24324723;stroke-linejoin:round;stroke-miterlimit:10"
+           inkscape:connector-curvature="0"
+           id="path921"
+           stroke-miterlimit="10"
+           d="m 10.314,9.069 c 0.305,0.141 0.242,0.328 0.148,1.201 -0.097,0.905 -0.414,2.554 -1.032,4.173 -0.616,1.622 -1.529,3.21 -2.325,4.39 -0.797,1.178 -1.478,1.943 -1.998,2.386 -0.519,0.441 -0.882,0.559 -1.115,0.599 -0.233,0.04 -0.339,0 -0.405,-0.117 -0.063,-0.118 -0.084,-0.315 -0.031,-0.551 0.053,-0.234 0.181,-0.51 0.542,-0.863 0.36,-0.354 0.956,-0.785 1.785,-1.188 0.829,-0.402 1.891,-0.775 2.762,-1.031 0.871,-0.256 1.551,-0.393 2.146,-0.5 0.595,-0.108 1.104,-0.187 1.604,-0.226 0.5,-0.04 0.988,-0.04 1.467,0 0.478,0.039 0.945,0.117 1.348,0.216 0.406,0.097 0.745,0.217 1.042,0.402 0.299,0.187 0.552,0.441 0.681,0.726 0.127,0.286 0.127,0.6 0.021,0.825 -0.105,0.227 -0.318,0.364 -0.563,0.441 -0.246,0.08 -0.522,0.099 -0.851,0 C 15.21,19.854 14.828,19.638 14.425,19.353 14.021,19.069 13.596,18.715 13.044,18.166 12.491,17.615 11.812,16.868 11.237,16.143 10.664,15.416 10.196,14.709 9.879,14.11 9.56,13.511 9.39,13.02 9.252,12.528 9.114,12.037 9.008,11.548 8.965,11.106 8.922,10.663 8.944,10.269 8.986,9.957 9.028,9.642 9.092,9.407 9.199,9.249 9.305,9.092 9.455,9.014 9.561,8.974 9.667,8.934 9.73,8.934 9.795,8.925 c 0.063,-0.009 0.126,-0.029 0.222,0 0.094,0.03 0.216,0.104 0.34,0.18" />
+      </g>
+    </g>
+  </g>
+</svg>
