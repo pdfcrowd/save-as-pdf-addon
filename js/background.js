@@ -22,12 +22,15 @@ var apiUrls = {
 }
 
 var apiVersionUrl = baseUrl + '/session/api-version/'
-const apiRoot = isFirefox ? 'browser' : 'chrome';
-
-
 
 
 // ---------------------------------------------------------------------------
+
+function getRuntime() {
+    return isFirefox
+        ? browser.runtime
+        : chrome.runtime;
+}
 
 function ConversionContext() {
     this._isRunning = false;
@@ -37,7 +40,7 @@ function ConversionContext() {
 
 ConversionContext.prototype.sendMessage = function(payload, url) {
     payload['url'] = url || this.url
-    window[apiRoot].runtime.sendMessage(payload, (response) => {
+    getRuntime().sendMessage(payload, (response) => {
         // prevents error message in the console
         chrome.runtime.lastError;
         // popup is closed
@@ -291,7 +294,7 @@ function getCached(url, callback) {
             if (record) {
                 let elapsed = Date.now() - record.timestamp_saved;
                 if (elapsed <= resultCacheTimeout) {
-                    window[apiRoot].runtime.sendMessage({
+                    getRuntime().sendMessage({
                         status: 'cached_data',
                         data: record,
                         url: url,
@@ -333,7 +336,7 @@ function convertUrl(url, force=false) {
 
 
 
-window[apiRoot].runtime.onMessage.addListener((request, sender, sendResponse) => {
+getRuntime().onMessage.addListener((request, sender, sendResponse) => {
     try {
         if(request.message == 'convert_url') {
             convertUrl(request.url, request.force);

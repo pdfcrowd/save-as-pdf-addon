@@ -1,0 +1,11 @@
+.*
+*~
+makefile
+manifest*
+*.zip
+exclude.txt
+userscript*
+tools
+graphics
+makezip*
+secrets*

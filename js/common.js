@@ -6,7 +6,7 @@ export const isFirefox = navigator.userAgent.indexOf("Chrome") == -1
 
 export const baseUrl = (isManifestV2
                         ? manifestData.permissions[0]
-                        : manifestData.host_permissions).replace(/\/+$/, '');
+                        : manifestData.host_permissions[0]).replace(/\/+$/, '');
 
 if (!baseUrl.startsWith('https://')) {
     throw("The server URL must be the first item in the permissions or host_permissions array")
@@ -18,6 +18,7 @@ const linkConversionSettings = baseUrl + '/html-to-pdf/?ref=plugin#convert_by_ur
 const linkPluginHome = baseUrl + '/save-as-pdf-addon/?ref=plugin'
 const linkHtmlToPdfApi = baseUrl + '/api/html-to-pdf-api/?ref=plugin'
 const linkSaveAsPdfWP = baseUrl + '/save-as-pdf-wordpress-plugin/?ref=plugin'
+const linkSaveChatGPTasPDF = baseUrl + '/save-chatgpt-as-pdf/'
 const linkAccountLicense = baseUrl + '/user/account/browser-license/?ref=plugin'
 
 const linkToCssMapping = {
@@ -28,6 +29,7 @@ const linkToCssMapping = {
     '.link-html-to-pdf-api': linkHtmlToPdfApi,
     '.link-save-as-pdf-wp': linkSaveAsPdfWP,
     '.link-account-license': linkAccountLicense,
+    '.link-save-chat-gpt-as-pdf': linkSaveChatGPTasPDF,
 };
 
 
