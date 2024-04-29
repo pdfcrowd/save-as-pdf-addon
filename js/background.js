@@ -232,6 +232,13 @@ function createPdfEx(url, apiUrl) {
 
 function getUserInfo() {
     return new Promise((resolve, reject) => {
+        // manifest v3: this prevents us migrating ff to v3;
+        //
+        // pdfcrowd.com is listed in `host_permission` and according to the docs
+        // should be allowed to make this request regardless of the cors
+        // headers; ff 125.0 makes this requests, the server sends a correct
+        // response, but we got no data here (response.status=0), the devtools
+        // show 0-byte response
         fetch(apiVersionUrl, {
             mode: 'no-cors',
         })
