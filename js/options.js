@@ -173,25 +173,6 @@ function showLicenseInfo(data) {
         } else {
             show('.logged-in');
             setText(".username", data.username);
-            if (data.license) {
-                let now = Date.now()
-                let expires = parseInt(data.expires)
-                let expires_in = Math.floor((expires-now) / 1000 / 60 / 60 / 24);
-                let expires_in_str;
-                if (expires_in < 1) {
-                    expires_in_str = "less than one day";
-                } else if (expires_in < 2) {
-                    expires_in_str = "1 day";
-                } else {
-                    expires_in_str = `${expires_in} days`;
-                }
-
-                if (expires_in < 7) {
-                    show('span.is-time-to-renew', 'inline')
-                }
-
-                setText(".expires-in", `in ${expires_in_str}`);
-            }
         }
         
         if (!data.license) {

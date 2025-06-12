@@ -1,5 +1,8 @@
 .*
 *~
+\#*
+CLAUDE.md
+ai-notes
 makefile
 manifest*
 *.zip
